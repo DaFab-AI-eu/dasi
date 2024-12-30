@@ -9,12 +9,14 @@ list( APPEND _dasi_tests
 )
 
 foreach( _test ${_dasi_tests} )
-    ecbuild_add_test(
-        TARGET dasi_test_${_test}
+
+    add_test(
+        TARGET test_dasi_${_test}
         SOURCES test_${_test}.cc
-        INCLUDES ${dasi_test_INCLUDES}
+        INCLUDES ${test_dasi_includes}
         LIBS dasi
     )
+
 endforeach()
 
 # TODO: Include some tests that don't pull in eckit, to prove that the API doesn't require it.
