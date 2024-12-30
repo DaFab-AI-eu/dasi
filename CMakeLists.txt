@@ -44,11 +44,17 @@ find_package( fdb5 5.13 REQUIRED )
 
 option( BUILD_SHARED_LIBS "Build using shared libraries" ON )
 
+option( BUILD_EXAMPLES "Build the examples" OFF )
+
 add_subdirectory( src )
 
-# if( CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING )
+# if( BUILD_TESTING AND CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME )
 #     add_subdirectory( tests )
 # endif( )
+
+if( BUILD_EXAMPLES )
+    add_subdirectory( examples )
+endif( )
 
 # install package
 
