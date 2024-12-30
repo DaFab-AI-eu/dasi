@@ -3,20 +3,10 @@
 *workspace
 .idea
 .idea/*
-.vscode
-build/*
-contrib/*
+.vscode/
+build/
+contrib/
 dhskit
-ecbuild
-eccodes
-eckit
-fdb5
-mars-adsm
-mars-hpss
-mars-server
-metkit
-odc
-pmem
 # example outputs
 examples/**/*.data
 examples/**/*.index
@@ -38,3 +28,5 @@ docs/_build/
 docs/contents/generated
 docs/source/gen_*
 docs/**/_autosummary
+.cache/
+.DS_Store
