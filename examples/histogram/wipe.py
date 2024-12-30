@@ -28,7 +28,7 @@ if __name__ == "__main__":
         "Type": [args.Type],
     }
 
-    session = Dasi("./dasi.yml")
+    session = Dasi("./dasi.yaml")
 
     # Setup query
     query["Type"] = ["tif"]

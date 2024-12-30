@@ -32,7 +32,7 @@ spaces:
 
 __default_config__ = __template__.format(schema_="./schema", path_="./root1")
 
-__default_path__ = "./dasi.yml"
+__default_path__ = "./dasi.yaml"
 
 
 class Config(object):

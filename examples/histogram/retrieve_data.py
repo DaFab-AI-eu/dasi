@@ -61,7 +61,7 @@ if __name__ == "__main__":
         "Date": ["01-01-2023"],
     }
 
-    session = Dasi("./dasi.yml")
+    session = Dasi("./dasi.yaml")
 
     # Setup query
     query["Type"] = ["tif", "mdoc"]

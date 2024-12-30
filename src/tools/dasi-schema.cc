@@ -84,7 +84,7 @@ void DASISchema::usage(const std::string& tool) const {
                        << "Examples:" << eckit::newl                        //
                        << "=========" << eckit::newl                        //
                        << eckit::newl                                       //
-                       << tool << " --config=dasi.yml" << eckit::newl       //
+                       << tool << " --config=dasi.yaml" << eckit::newl       //
                        << tool << " --query" << eckit::newl                 //
                        << tool << " --scan" << eckit::newl                  //
                        << tool << " --root" << eckit::newl                  //

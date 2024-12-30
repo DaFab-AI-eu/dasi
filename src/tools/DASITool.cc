@@ -34,7 +34,7 @@ void DASITool::run() {
 }
 
 void DASITool::initInternal(const CmdArgs& args) {
-    configPath_ = args.getString("config", "./dasi.yml");
+    configPath_ = args.getString("config", "./dasi.yaml");
 }
 
 Dasi& DASITool::dasi() {
