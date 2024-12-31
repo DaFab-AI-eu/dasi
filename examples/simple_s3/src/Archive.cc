@@ -24,8 +24,13 @@
 
 #include "Metadata.h"
 #include "Utils.h"
+#include "dasi/api/Dasi.h"
+#include "dasi/api/Key.h"
 
-#include <dasi/api/Dasi.h>
+#include <exception>
+#include <iostream>
+#include <string>
+#include <vector>
 
 constexpr int DATA_SIZE = 24;
 
