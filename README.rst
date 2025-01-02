@@ -65,11 +65,9 @@ Dependencies
 
 * C/C++ compiler
 * `CMake`_
-* `ecbuild`_
 * `eckit`_
-* `metkit`_
 * `fdb`_
-* `AWS SDK C++<https://github.com/aws/aws-sdk-cpp>`_ (only if S3 enabled)
+* `AWS SDK C++<https://github.com/aws/aws-sdk-cpp>`_ (only if S3 enabled for FDB)
 
 Build and Install
 ~~~~~~~~~~~~~~~~~
@@ -84,7 +82,6 @@ Build and Install
    BUILD_DIR=build
    INSTALL_DIR=$HOME/local
    export eckit_DIR=$ECKIT_DIR
-   export metkit_DIR=$METKIT_DIR
    export fdb5_DIR=$FDB_DIR
 
    # Create the the build directory
