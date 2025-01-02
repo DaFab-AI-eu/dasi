@@ -18,13 +18,30 @@
 
 cmake_minimum_required( VERSION 3.15 FATAL_ERROR )
 
-project( dasi   VERSION 0.2.5
-                DESCRIPTION "Data Access and Storage Interface (DASI)"
-                LANGUAGES C CXX )
+project( dasi VERSION 0.2.5
+              DESCRIPTION "Data Access and Storage Interface (DASI)"
+              LANGUAGES C CXX )
 
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_EXTENSIONS OFF )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
+
+########################################################################################################################
+# dependencies
+
+find_package( eckit 1.28 REQUIRED )
+find_package( fdb5 5.13 REQUIRED )
+
+########################################################################################################################
+# options
+
+option( BUILD_SHARED_LIBS "Build using shared libraries" ON )
+
+option( BUILD_EXAMPLES "Build the examples" OFF )
+
+option( BUILD_TESTING "Build the tests" OFF )
+
+########################################################################################################################
 
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 
@@ -34,23 +51,11 @@ include( CTest )
 
 ########################################################################################################################
 
-find_package( eckit 1.28 REQUIRED )
-find_package( fdb5 5.13 REQUIRED )
-# find_package( fdb_bundle REQUIRED )
-
-########################################################################################################################
-
-# options
-
-option( BUILD_SHARED_LIBS "Build using shared libraries" ON )
-
-option( BUILD_EXAMPLES "Build the examples" OFF )
-
 add_subdirectory( src )
 
-# if( BUILD_TESTING AND CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME )
-#     add_subdirectory( tests )
-# endif( )
+if( BUILD_TESTING )
+    add_subdirectory( tests )
+endif( )
 
 if( BUILD_EXAMPLES )
     add_subdirectory( examples )

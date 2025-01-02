@@ -5,4 +5,5 @@ macro( _set_verbose )
 
 endmacro( )
 
-_set_verbose( ENABLE_TESTING    OFF CACHE   BOOL "Enable build testing" FORCE)
+_set_verbose( BUILD_EXAMPLES    OFF CACHE   BOOL "Enable build examples" FORCE )
+_set_verbose( BUILD_TESTING     OFF CACHE   BOOL "Enable build tests"    FORCE )
