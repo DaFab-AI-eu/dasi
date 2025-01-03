@@ -13,12 +13,12 @@
 # limitations under the License.
 
 
-from dasi.backend import ffi, lib, new_dasi
+from backend import ffi, lib, new_dasi
 
-from dasi.key import Key
-from dasi.wipe import Wipe
-from dasi.list import List
-from dasi.retrieve import Retrieve
+from .key import Key
+from .wipe import Wipe
+from .list import List
+from .retrieve import Retrieve
 
 
 class Dasi:
@@ -40,11 +40,11 @@ class Dasi:
 
         :param str config: the configuration file.
         """
-        from dasi.utils import log
+        from utils.log import getLogger
 
         lib.load()
 
-        self._log = log.getLogger(__name__)
+        self._log = getLogger(__name__)
 
         self._log.debug("Initialize Dasi...")
 

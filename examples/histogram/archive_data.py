@@ -14,7 +14,7 @@
 
 from helper import DirectoryStore, cmdline_args
 
-from dasi import Dasi
+from pydasi import Dasi
 
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     session = Dasi("./dasi.yaml")
 
-    for name, data in dir.files():
+    for name, ext, data in dir.files():
         print("Archiving: %s" % name)
         key["Name"] = name
         key["Type"] = ext

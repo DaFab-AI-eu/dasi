@@ -3,5 +3,5 @@ schema: ./schema
 catalogue: toc
 store: file
 spaces:
- - roots:
+  - roots:
     - path: ./root1

@@ -19,7 +19,7 @@ from pycparser import c_generator, parse_file
 
 def usage():
     sys.stderr.write("Usage:\n")
-    sys.stderr.write("\tbuild_header.py <header.h> <header_cffi.h>\n")
+    sys.stderr.write("\tpython build_header.py <header.h> <header_cffi.h>\n")
 
 
 if __name__ == "__main__":
@@ -33,9 +33,8 @@ if __name__ == "__main__":
     ast = parse_file(
         input_filename,
         use_cpp=True,
-        cpp_path="clang",
+        cpp_path="gcc",
         cpp_args="-E",
-        # cpp_args=["-E", "-Iutils/fake_libc_include"],
     )
     # ast.show()
     with open(output_filename, "w") as f:

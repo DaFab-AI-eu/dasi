@@ -3,5 +3,5 @@ schema: /Users/macm/dev/DASI/examples/cryoem/schema
 catalogue: toc
 store: file
 spaces:
- - roots:
+  - roots:
     - path: /Users/macm/dev/DASI/examples/cryoem

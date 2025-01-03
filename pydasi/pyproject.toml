@@ -1,16 +1,13 @@
-[build-system]
-requires = ["setuptools >= 45.0", "wheel", "cffi>=1.1.1"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "pydasi"
-description = "The Python interface to DASI (Data Access and Storage Interface), developed as part of the EuroHPC project IO-SEA."
+description = "The Python interface to DASI (Data Access and Storage Interface)."
 authors = [
   { name = "European Centre for Medium-Range Weather Forecasts (ECMWF)", email = "software.support@ecmwf.int" },
 ]
 keywords = ["dasi", "ecmwf"]
 #dynamic = ["version", "readme"]
-version = "0.2.2"
+dynamic = ["version"]
+# version = "0.2.5"
 readme = { content-type = "text/markdown", file = "README.md" }
 license = { text = "Apache License Version 2.0" }
 classifiers = [
@@ -20,65 +17,86 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Natural Language :: English",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Operating System :: MacOS",
   "Operating System :: Unix",
   "Operating System :: POSIX",
   "Operating System :: POSIX :: Linux",
 ]
-requires-python = ">=3.6"
-dependencies = [
-  "cffi>=1.1.1",
-  "pyyaml>=5.3.1",
-  "packaging>=22.0",
-  "importlib-metadata; python_version<'3.8'",
-]
+requires-python = ">=3.8"
+dependencies = ["cffi>=1.1.1", "pyyaml>=5.3.1", "packaging>=22.0"]
 
 [project.optional-dependencies]
-tests = ["pytest"]
+tests = ["pytest", "pytest-env"]
 
 [project.urls]
 Source = "https://github.com/ecmwf-projects/dasi"
+Issues = "https://github.com/ecmwf-projects/dasi/issues"
 Documentation = "https://pydasi.readthedocs.io/"
 Changelog = "https://github.com/ecmwf-projects/dasi/blob/master/CHANGELOG"
 
 #[tool.setuptools]
 #packages = ["dasi", "dasi.utils", "dasi.cffi"]
 
+[build-system]
+requires = ["setuptools >= 45.0", "cffi>=1.1.1"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools.packages.find]
 where = ["src"] # list of folders that contain the packages (["."] by default)
-# include = [
-#   "dasi",
-#   # "library",
-#   "utils",
-# ] # package names should match these glob patterns (["*"] by default)
-# exclude = [
-#   "tests",
-# ] # exclude packages matching these glob patterns (empty by default)
+include = [
+  "backend*",
+  "pydasi*",
+  "utils*",
+]
+exclude = [
+  "tests*",
+]
 # namespaces = false # to disable scanning PEP 420 namespaces (true by default)
 
+[tool.setuptools.package-data]
+"backend.include" = ["*.h"]
+"backend.libs" = ["*.so", "*.dylib", "*.dll"]
+
+[tool.setuptools.dynamic]
+version = {attr = "utils.version.__version__"}
+
 [tool.pytest.ini_options]
-addopts = ["-ra", "--strict-markers", "--strict-config", "--capture=no"]
+minversion = "6.0"
+addopts = "-ra --strict-markers --strict-config --capture=no"
+testpaths = ["tests"]
+env = ["ECKIT_SERIOUS_BUG_IS_SILENT = 1"]
 xfail_strict = true
-testpaths = "tests"
 filterwarnings = ["once::Warning"]
+markers = ["slow", "parallel"]
+
+# flake8 configuration
+[tool.flake8]
+max-line-length = 80
+extend-ignore = "E226, E501, W503"
+exclude = [
+  ".git",
+  "__pycache__",
+  ".venv",
+  ".eggs",
+  ".tox",
+  "build",
+  "_build",
+  "dist",
+  "docs",
+]
 
 # Black formatting
 [tool.black]
-line-length = 79
+line-length = 80
 include = '\.pyi?$'
 exclude = '''
 /(
       .eggs
     | .git
     | .hg
+    | .pytest_cache
     | .mypy_cache
     | .tox
     | .venv
@@ -98,11 +116,13 @@ src_paths = ["src"]
 virtual_env = ".venv"
 
 [tool.pyright]
-include = ["dasi", "tools", "tests"]
+include = ["src", "tests", "tools"]
 exclude = ["**/node_modules", "**/__pycache__", "experimental", "typestubs"]
-# ignore = ["dasi/legacy"]
 defineConstant = { DEBUG = true }
 venvPath = ".venv"
+
+[tool.tox]
+envlist = ["py39", "py38", "pypy3"]
 
 reportMissingImports = true
 # reportMissingTypeStubs = false

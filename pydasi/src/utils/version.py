@@ -12,24 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .dasi import Dasi
-from .key import Key
-from .query import Query
-from .wipe import Wipe
-from .list import List
-from .retrieve import Retrieve
-from .backend import DASIException
-from .utils.config import Config
-from .utils.version import __version__
+
+__version__ = "0.2.5"
 
 
-__all__ = [
-    "Dasi",
-    "Key",
-    "Query",
-    "Wipe",
-    "List",
-    "Retrieve",
-    "DASIException",
-    "Config",
-]
+def is_newer(ver_a: str) -> bool:
+    from packaging.version import Version
+
+    return Version(ver_a) >= Version(__version__)

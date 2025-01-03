@@ -14,8 +14,7 @@
 
 import pytest
 
-from dasi import Query
-from dasi.backend import DASIException, check_type
+from pydasi import Query, DASIException, check_type
 
 
 def test_query_typename():
@@ -154,11 +153,3 @@ def test_query_invalid():
     with pytest.raises(DASIException):
         pairs = "key3=value3/value3b,key1=value1;key2=value2"
         Query(pairs)
-
-
-if __name__ == "__main__":
-    test_query_typename()
-    test_query_empty()
-    test_query_from_string()
-    test_query_clear()
-    test_query_invalid()

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dasi.backend import (
+from backend import (
     FFI,
     DASIException,
     ffi,
@@ -30,11 +30,11 @@ class Query:
     """
 
     def __init__(self, query=None):
-        from dasi.utils import log
+        from utils.log import getLogger
 
         lib.load()
 
-        self._log = log.getLogger(__name__)
+        self._log = getLogger(__name__)
 
         self._log.debug("init query: %s", query)
 
@@ -75,7 +75,9 @@ class Query:
             self[keyword] = value
 
     def append(self, keyword, value):
-        lib.dasi_query_append(self._cdata, ffi_encode(keyword), ffi_encode(value))
+        lib.dasi_query_append(
+            self._cdata, ffi_encode(keyword), ffi_encode(value)
+        )
 
     def get_value(self, keyword, number) -> str:
         value = ffi.new("const char **")
@@ -93,7 +95,7 @@ class Query:
             lib.dasi_query_value_count(self._cdata, ffi_encode(keyword), count)
             return count[0]
         except DASIException as e:
-            self._log.warning(e.error)
+            self._log.debug(e.error)
             return 0
 
     def clear(self):

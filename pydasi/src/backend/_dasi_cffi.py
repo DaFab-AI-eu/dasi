@@ -15,8 +15,7 @@
 from os import path as ospath
 from cffi import FFI
 
-from dasi.utils import log, version
-from dasi.backend.find_lib import FindLib
+from utils import FindLib, log, version
 
 
 ffi = FFI()
@@ -137,6 +136,11 @@ class PatchedLib:
     """
 
     def __init__(self):
+        from os import environ as osenv
+
+        osenv["ECKIT_EXCEPTION_IS_SILENT"] = "1"
+        osenv["ECKIT_ASSERT_FAILED_IS_SILENT"] = "1"
+
         self.__loaded = False
         self._log = log.getLogger(__package__)
         self._log.info("version: %s", version.__version__)

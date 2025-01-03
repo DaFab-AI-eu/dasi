@@ -12,66 +12,66 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dasi.backend import FFI, ffi, lib, ffi_decode, new_list
+from backend import FFI, ffi, lib, new_retrieve
 
-from dasi.key import Key
-from dasi.query import Query
+from .key import Key
+from .query import Query
 
 
-class List:
+class Retrieve:
     def __init__(self, dasi: FFI.CData, query):
-        from dasi.utils import log
+        from utils.log import getLogger
 
-        self._log = log.getLogger(__name__)
+        self._log = getLogger(__name__)
 
-        self._log.debug("Initialize List...")
+        self._log.debug("Initialize Retrieve...")
 
         self.__key = Key()
-        self.__uri = ffi.new("const char **", ffi.NULL)
+        self.__data = bytearray()
         self.__time = ffi.new("dasi_time_t *", 0)
         self.__offset = ffi.new("long *", 0)
         self.__length = ffi.new("long *", 0)
-        self._cdata = new_list(dasi, Query(query).cdata)
+        self._cdata = new_retrieve(dasi, Query(query).cdata)
 
     def __str__(self) -> str:
-        return "{}, uri: {}, time: {}, offset: {}, length: {}".format(
-            self.key, self.uri, self.timestamp, self.offset, self.length
+        return "{}, time: {}, offset: {}, length: {}".format(
+            self.key, self.timestamp, self.offset, self.length
         )
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if lib.dasi_list_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
+        if lib.dasi_retrieve_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
             raise StopIteration
         self.__read()
         return self
 
     def __len__(self) -> int:
-        self._log.debug("not implemented in Dasi C lib!")
-        return 0
+        count = ffi.new("long *", 0)
+        lib.dasi_retrieve_count(self._cdata, count)
+        return count[0]
 
     def __read(self):
         ckey = ffi.new("dasi_key_t **", ffi.NULL)
-        lib.dasi_list_attrs(
-            self._cdata,
-            ckey,
-            self.__time,
-            self.__uri,
-            self.__offset,
-            self.__length,
+        lib.dasi_retrieve_attrs(
+            self._cdata, ckey, self.__time, self.__offset, self.__length
         )
         ckey: FFI.CData = ffi.gc(ckey[0], lib.dasi_free_key)
         self.__key = Key(ckey)
+
+        self.__data = bytearray(self.length)
+        lib.dasi_retrieve_read(
+            self._cdata, ffi.from_buffer(self.__data), self.__length
+        )
 
     @property
     def key(self) -> Key:
         return self.__key
 
     @property
-    def uri(self) -> str:
-        val: FFI.CData = self.__uri[0]
-        return ffi_decode(val) if val != ffi.NULL else "unknown"
+    def data(self) -> bytearray:
+        return self.__data
 
     @property
     def timestamp(self) -> int:

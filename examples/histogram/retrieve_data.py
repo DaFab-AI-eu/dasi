@@ -15,7 +15,7 @@
 
 from helper import cmdline_args, plot_histogram
 
-from dasi import Dasi
+from pydasi import Dasi
 
 
 def query_names(session: Dasi, query):

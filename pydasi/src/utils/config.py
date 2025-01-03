@@ -25,8 +25,7 @@ schema: {schema_}
 catalogue: toc
 store: file
 spaces:
-- handler: Default
-  roots:
+- roots:
   - path: {path_}
 """
 
@@ -37,12 +36,13 @@ __default_path__ = "./dasi.yaml"
 
 class Config(object):
     def __init__(self) -> None:
-        from dasi.utils import log
+        from utils.log import getLogger
 
-        self._log = log.getLogger(__name__)
+        self._log = getLogger(__name__)
+
         self._log.debug("Config init...")
 
-        self._yaml = yaml.safe_load("schema:\nspaces:\n- handler: Default")
+        self._yaml = yaml.safe_load("schema:\nspaces:\n  - roots:")
 
     @property
     def yaml(self):
@@ -59,7 +59,7 @@ class Config(object):
         return "config:\n%s" % self.dump
 
     def load(self, config: str = __default_config__):
-        from dasi.backend import DASIException
+        from backend import DASIException
 
         self._yaml = yaml.safe_load(config)
 
@@ -99,5 +99,5 @@ class Config(object):
         return self
 
     def roots(self, value: List[Dict[str, Any]]):
-        self._yaml["spaces"][0]["roots"] = value
+        self._yaml["spaces"][0] = {"roots": value}
         return self

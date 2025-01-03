@@ -1,7 +1,3 @@
-typedef long int ptrdiff_t;
-typedef long unsigned int size_t;
-typedef int wchar_t;
-typedef long double max_align_t;
 typedef int dasi_bool_t;
 typedef long dasi_time_t;
 struct Dasi;
@@ -18,7 +14,8 @@ struct dasi_list_t;
 typedef struct dasi_list_t dasi_list_t;
 struct dasi_retrieve_t;
 typedef struct dasi_retrieve_t dasi_retrieve_t;
-typedef enum dasi_error_values_t {
+typedef enum dasi_error_values_t
+{
   DASI_SUCCESS = 0,
   DASI_ITERATION_COMPLETE = 1,
   DASI_ERROR = 2,

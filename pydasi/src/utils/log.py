@@ -18,11 +18,14 @@ __logging_config__ = dict(
     version=1,
     formatters={
         "default": {
-            "datefmt": "%d-%m-%Y [%H:%M:%S]",
-            "format": "%(asctime)s %(name)-12s | %(levelname)-6s | %(message)s",
+            "format": "%(name)-12s | %(message)s",
         },
         "compact": {
-            "format": "%(name)-12s | %(message)s",
+            "format": "%(message)s",
+        },
+        "debug": {
+            "datefmt": "%d-%m-%Y [%H:%M:%S]",
+            "format": "%(asctime)s %(name)-12s | %(levelname)-7s | %(message)s",
         },
     },
     handlers={
@@ -32,41 +35,35 @@ __logging_config__ = dict(
             "stream": "ext://sys.stdout",
             "level": INFO,
         },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "default",
-            "filename": "dasi.log",
-            "maxBytes": 1024,
-            "backupCount": 0,
-            "level": DEBUG,
-        },
     },
     root={
         "handlers": ["console"],
         "level": NOTSET,
     },
-    loggers={
-        "dasi.dasi": {
-            "level": DEBUG,
-            "propagate": True,
-        },
-    },
 )
 
 
-def init_logging() -> None:
+def init_logging(name) -> None:
     from logging.config import dictConfig
 
     if _check_debug_arg():
-        __logging_config__["root"]["handlers"].append("file")  # type: ignore
+        __logging_config__["handlers"]["console"]["level"] = DEBUG  # type: ignore
+        __logging_config__["handlers"]["log_file"] = {  # type: ignore
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "pydasi.log",
+            "maxBytes": 102400,
+            "backupCount": 0,
+            "level": DEBUG,
+            "formatter": "debug",
+        }
+        __logging_config__["root"]["handlers"].append("log_file")  # type: ignore
+        __logging_config__["root"]["propagate"] = True  # type: ignore
 
     dictConfig(__logging_config__)
 
-    name = "=   DASI: Data Access and Storage Interface   ="
-    horizontal = "==============================================="
-    getLogger().info(horizontal)
-    getLogger().info(name)
-    getLogger().info(horizontal)
+    getLogger().info("===============================================")
+    getLogger().info("=   " + name + "   =")
+    getLogger().info("===============================================")
 
 
 def _check_debug_arg() -> bool:
@@ -76,7 +73,7 @@ def _check_debug_arg() -> bool:
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="debug outputs to log file.",
+        help="outputs level=DEBUG to log file.",
     )
     args, _ = parser.parse_known_args()
 

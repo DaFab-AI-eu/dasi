@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dasi.backend import FFI, ffi, lib, ffi_decode, ffi_encode, new_key, check_type
+from backend import FFI, ffi, lib, ffi_decode, ffi_encode, new_key, check_type
 
 
 class Key:
@@ -21,11 +21,13 @@ class Key:
     """
 
     def __init__(self, key=None):
-        from dasi.utils import log
+        from utils.log import getLogger
 
         lib.load()
 
-        log.getLogger(__name__).debug("init key: %s", key)
+        self._log = getLogger(__name__)
+
+        self._log.debug("init key: %s", key)
 
         if isinstance(key, Key):
             self._cdata = key._cdata
@@ -66,7 +68,9 @@ class Key:
         out = ""
         for i in range(len(self)):
             lib.dasi_key_get_index(self._cdata, i, keyword, value)
-            out += "<{}:{}>".format(ffi_decode(keyword[0]), ffi_decode(value[0]))
+            out += "<{}:{}>".format(
+                ffi_decode(keyword[0]), ffi_decode(value[0])
+            )
         return out
 
     def __ne__(self, other) -> bool:

@@ -12,11 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ._dasi_cffi import (
+    FFI,
+    DASIException,
+    ffi,
+    ffi_encode,
+    ffi_decode,
+    lib,
+    new_dasi,
+    new_key,
+    new_query,
+    new_wipe,
+    new_list,
+    new_retrieve,
+    check_type,
+)
 
-from . import log, version
-
-
-__all__ = ["log", "version"]
-
-
-log.init_logging()
+__all__ = [
+    "FFI",
+    "DASIException",
+    "ffi",
+    "ffi_encode",
+    "ffi_decode",
+    "lib",
+    "new_dasi",
+    "new_key",
+    "new_query",
+    "new_wipe",
+    "new_list",
+    "new_retrieve",
+    "check_type",
+]

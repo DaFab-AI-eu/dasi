@@ -107,24 +107,22 @@ template<typename FN>
 [[nodiscard]] int tryCatch(FN&& fn) {
     try {
         return innerWrapFn(fn);
+    } catch (const eckit::SeriousBug& e) {
+        g_current_error_string = e.what();
+        return DASI_ERROR_BUG;
     } catch (const eckit::UserError& e) {
-        eckit::Log::error() << "User Error: " << e.what() << std::endl;
         g_current_error_string = e.what();
         return DASI_ERROR_USER;
     } catch (const eckit::AssertionFailed& e) {
-        eckit::Log::error() << "Assertion Failed: " << e.what() << std::endl;
         g_current_error_string = e.what();
         return DASI_ERROR_ASSERT;
     } catch (const eckit::Exception& e) {
-        eckit::Log::error() << "DASI Error: " << e.what() << std::endl;
         g_current_error_string = e.what();
         return DASI_ERROR;
     } catch (const std::exception& e) {
-        eckit::Log::error() << "Unknown Error: " << e.what() << std::endl;
         g_current_error_string = e.what();
         return DASI_ERROR_UNKNOWN;
     } catch (...) {
-        eckit::Log::error() << "Unknown Error!" << std::endl;
         g_current_error_string = "<unknown>";
         return DASI_ERROR_UNKNOWN;
     }

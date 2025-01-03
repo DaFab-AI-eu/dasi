@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, errno
-from platform import system as p_system
+import os
+import errno
 
-from dasi.utils import log
+from platform import system as p_system
 
 
 class FindLib:
@@ -24,7 +24,10 @@ class FindLib:
     """
 
     def __init__(self, name: str, dir: str):
-        self._log = log.getLogger(__package__)
+
+        from .log import getLogger
+
+        self._log = getLogger(__package__)
 
         self._log.info("Searching '%s' ...", name)
 
@@ -42,9 +45,9 @@ class FindLib:
 
         self.__path = ""
         if platform == "Linux":
-            self.__path = os.path.join(dir, "lib", "linux", self.__name)
+            self.__path = os.path.join(dir, "libs", "Linux", self.__name)
         elif platform == "Darwin":
-            self.__path = os.path.join(dir, "lib", "darwin", self.__name)
+            self.__path = os.path.join(dir, "libs", "Darwin", self.__name)
 
         # env vars take priority over dir
         paths_ = [""]

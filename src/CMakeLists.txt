@@ -66,6 +66,7 @@ target_include_directories( ${PROJECT_NAME}
 )
 
 set_target_properties( ${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION} )
+set_target_properties( ${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS} )
 
 target_link_libraries( ${PROJECT_NAME} PUBLIC eckit fdb5 )

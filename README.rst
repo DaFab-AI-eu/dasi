@@ -33,10 +33,9 @@ An example configuration:
    catalogue: toc
    store: file
    spaces:
-      - handler: Default
-      roots:
-      - path: path/to/data/output1
-      - path: path/to/data/output2
+      - roots:
+        - path: path/to/data/output1
+        - path: path/to/data/output2
 
 
 Schema

@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dasi.backend import FFI, ffi, lib, ffi_decode, new_wipe
+from backend import FFI, ffi, lib, ffi_decode, new_wipe
 
 # from dasi.dasi import Dasi
-from dasi.query import Query
+from .query import Query
 
 
 class Wipe:
     def __init__(self, dasi: FFI.CData, query, doit: bool, all: bool):
-        from dasi.utils import log
+        from utils.log import getLogger
 
-        self._log = log.getLogger(__name__)
+        self._log = getLogger(__name__)
 
         self._log.debug("Initialize Wipe...")
 
