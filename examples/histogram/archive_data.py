@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os.path as os_path
+
+from sys import argv
+
 from helper import DirectoryStore, cmdline_args
 
 from pydasi import Dasi
 
 
-if __name__ == "__main__":
+def main():
     args = cmdline_args()
     key = {
         "UserID": args.UserID,
@@ -30,7 +34,9 @@ if __name__ == "__main__":
 
     dir = DirectoryStore(args.Directory)
 
-    session = Dasi("./dasi.yaml")
+    print("Archiving data from: %s" % args.Directory)
+
+    session = Dasi(args.config)
 
     for name, ext, data in dir.files():
         print("Archiving: %s" % name)
@@ -40,3 +46,7 @@ if __name__ == "__main__":
         print("Archived: %s.%s" % (name, ext))
 
     print("Finished!")
+
+
+if __name__ == "__main__":
+    main()

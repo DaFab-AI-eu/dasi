@@ -23,7 +23,7 @@ ffi = FFI()
 __file_dir__ = ospath.dirname(__file__)
 """current file directory path"""
 
-__source_file__ = ospath.join(__file_dir__, "include", "dasi_cffi.h")
+__source_file__ = ospath.join(__file_dir__, "include", "dasi_c_cffi.h")
 """source file directory path"""
 
 

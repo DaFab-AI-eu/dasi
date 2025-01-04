@@ -7,10 +7,6 @@ foreach( _tool info list put get wipe policy schema )
 
     add_executable( ${DASI_TOOL_TARGET} ${DASI_TOOL_TARGET}.cc )
 
-    # target_include_directories( ${DASI_TOOL_TARGET}
-    #     PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
-    # )
-
     target_link_libraries( ${DASI_TOOL_TARGET} PRIVATE dasi eckit_option )
 
     install( TARGETS ${DASI_TOOL_TARGET} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )

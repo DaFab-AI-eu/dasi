@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 
 from pycparser import c_generator, parse_file
@@ -19,23 +20,32 @@ from pycparser import c_generator, parse_file
 
 def usage():
     sys.stderr.write("Usage:\n")
-    sys.stderr.write("\tpython build_header.py <header.h> <header_cffi.h>\n")
+    sys.stderr.write(
+        f"\tpython {os.path.basename(__file__)} <c_header.h> <cffi.h>\n"
+    )
+    sys.exit(1)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
+        sys.stderr.write("Error: incorrect arguements!\n")
         usage()
-        sys.exit(-1)
 
-    input_filename = sys.argv[1]
+    input_file = sys.argv[1]
+
+    if not os.path.isfile(input_file) or not input_file.endswith(".h"):
+        sys.stderr.write("Error: The input file is not a header.\n")
+        usage()
+
+    # output_filename = input_file.replace(".h", "_cffi.h")
     output_filename = sys.argv[2]
 
     ast = parse_file(
-        input_filename,
+        input_file,
         use_cpp=True,
         cpp_path="gcc",
         cpp_args="-E",
     )
-    # ast.show()
+
     with open(output_filename, "w") as f:
         f.write(c_generator.CGenerator().visit(ast))

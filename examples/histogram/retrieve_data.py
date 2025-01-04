@@ -49,7 +49,7 @@ def retrieve_files(session: Dasi, query):
     return files
 
 
-if __name__ == "__main__":
+def main():
     args = cmdline_args()
 
     query = {
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         "Date": ["01-01-2023"],
     }
 
-    session = Dasi("./dasi.yaml")
+    session = Dasi(args.config)
 
     # Setup query
     query["Type"] = ["tif", "mdoc"]
@@ -81,3 +81,7 @@ if __name__ == "__main__":
             plot_histogram(item.data, name)
 
     print("Finished!")
+
+
+if __name__ == "__main__":
+    main()

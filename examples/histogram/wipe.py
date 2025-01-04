@@ -15,10 +15,10 @@
 
 from helper import cmdline_args
 
-from dasi import Dasi
+from pydasi import Dasi
 
 
-if __name__ == "__main__":
+def main():
     args = cmdline_args()
 
     query = {
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         "Type": [args.Type],
     }
 
-    session = Dasi("./dasi.yaml")
+    session = Dasi(args.config)
 
     # Setup query
     query["Type"] = ["tif"]
@@ -41,3 +41,7 @@ if __name__ == "__main__":
         print("wiped: ", item.value)
 
     print("Finished!")
+
+
+if __name__ == "__main__":
+    main()

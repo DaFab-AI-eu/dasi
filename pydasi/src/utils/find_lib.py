@@ -29,50 +29,50 @@ class FindLib:
 
         self._log = getLogger(__package__)
 
-        self._log.info("Searching '%s' ...", name)
+        self._log.info("Searching library '%s' ...", name)
 
         platform = p_system()
-        self._log.debug("- platform: %s", platform)
 
-        if platform == "Linux":
-            self.__name = "lib" + name + ".so"
-        elif platform == "Darwin":
-            self.__name = "lib" + name + ".dylib"
-        elif platform == "Windows":
+        if platform == "Windows":
             raise NotImplementedError("Windows OS is not supported!")
 
-        self._log.debug("- name: %s", self.__name)
+        self.__name = "lib" + name
 
-        self.__path = ""
-        if platform == "Linux":
-            self.__path = os.path.join(dir, "libs", "Linux", self.__name)
-        elif platform == "Darwin":
-            self.__path = os.path.join(dir, "libs", "Darwin", self.__name)
+        self._log.debug("library name: %s", self.__name)
 
-        # env vars take priority over dir
-        paths_ = [""]
-        for env_var_ in ("DASI_DIR", "dasi_DIR", "LD_LIBRARY_PATH"):
-            env_path_ = os.getenv(env_var_)
-            if env_path_:
-                for epath_ in env_path_.split(":"):
-                    if os.path.exists(epath_):
-                        paths_.append(epath_)
-        paths_.append("/usr/local/lib64")
-        paths_.append("/usr/local/lib")
+        paths = [os.path.join(dir, "libs", platform)]
+        for env_var in ("DASI_DIR", "dasi_DIR", "LD_LIBRARY_PATH"):
+            env_path = os.getenv(env_var)
+            if env_path:
+                for epath_ in env_path.split(":"):
+                    paths.append(epath_)
 
-        for path_ in paths_:
-            p_ = os.path.join(path_, self.__name)
-            self._log.debug("- library ... [%s] ", p_)
-            if os.path.isfile(p_):
-                self.__path = p_
-                break
+        paths.append("/usr/local/lib64")
+        paths.append("/usr/local/lib")
+
+        def scan_paths(paths):
+            def list_files(dirs):
+                result = []
+                for dir in dirs:
+                    for root, _, files in os.walk(dir):
+                        for file in files:
+                            result.append(os.path.join(root, file))
+                return result
+
+            files = list_files(paths)
+            for file in files:
+                if self.__name in file:
+                    return file
+            return ""
+
+        self.__path = scan_paths(paths)
 
         if not os.path.exists(self.__path):
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), self.__path
             )
 
-        self._log.info("- path: %s", self.__path)
+        self._log.info("found: '%s'", self.__path)
 
     @property
     def path(self):

@@ -5,9 +5,7 @@ authors = [
   { name = "European Centre for Medium-Range Weather Forecasts (ECMWF)", email = "software.support@ecmwf.int" },
 ]
 keywords = ["dasi", "ecmwf"]
-#dynamic = ["version", "readme"]
 dynamic = ["version"]
-# version = "0.2.5"
 readme = { content-type = "text/markdown", file = "README.md" }
 license = { text = "Apache License Version 2.0" }
 classifiers = [
@@ -36,15 +34,12 @@ Issues = "https://github.com/ecmwf-projects/dasi/issues"
 Documentation = "https://pydasi.readthedocs.io/"
 Changelog = "https://github.com/ecmwf-projects/dasi/blob/master/CHANGELOG"
 
-#[tool.setuptools]
-#packages = ["dasi", "dasi.utils", "dasi.cffi"]
-
 [build-system]
 requires = ["setuptools >= 45.0", "cffi>=1.1.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["src"] # list of folders that contain the packages (["."] by default)
+where = ["src"]
 include = [
   "backend*",
   "pydasi*",
@@ -53,7 +48,8 @@ include = [
 exclude = [
   "tests*",
 ]
-# namespaces = false # to disable scanning PEP 420 namespaces (true by default)
+# comment out to disable scanning PEP 420 namespaces (true by default)
+# namespaces = false
 
 [tool.setuptools.package-data]
 "backend.include" = ["*.h"]

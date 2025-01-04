@@ -37,6 +37,8 @@ find_package( fdb5 5.13 REQUIRED )
 
 option( BUILD_SHARED_LIBS "Build using shared libraries" ON )
 
+option( BUILD_PYTHON "Build the python package" OFF )
+
 option( BUILD_EXAMPLES "Build the examples" OFF )
 
 option( BUILD_TESTING "Build the tests" OFF )
@@ -53,13 +55,11 @@ include( CTest )
 
 add_subdirectory( src )
 
-if( BUILD_TESTING )
-    add_subdirectory( tests )
-endif( )
+add_subdirectory( pydasi )
 
-if( BUILD_EXAMPLES )
-    add_subdirectory( examples )
-endif( )
+add_subdirectory( tests )
+
+add_subdirectory( examples )
 
 # install package
 

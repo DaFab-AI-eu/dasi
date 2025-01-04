@@ -17,6 +17,7 @@ def cmdline_args():
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
+    parser.add_argument("-c", "--config", default="dasi.yaml")
     parser.add_argument("-u", "--UserID", default="0001-2345-6789")
     parser.add_argument("-i", "--Institute", default="ECMWF")
     parser.add_argument("-p", "--Project", default="IOSEA")

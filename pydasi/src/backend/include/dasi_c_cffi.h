@@ -20,9 +20,10 @@ typedef enum dasi_error_values_t
   DASI_ITERATION_COMPLETE = 1,
   DASI_ERROR = 2,
   DASI_ERROR_UNKNOWN = 3,
-  DASI_ERROR_USER = 4,
-  DASI_ERROR_ITERATOR = 5,
-  DASI_ERROR_ASSERT = 6
+  DASI_ERROR_BUG = 4,
+  DASI_ERROR_USER = 5,
+  DASI_ERROR_ITERATOR = 6,
+  DASI_ERROR_ASSERT = 7
 } dasi_error_enum_t;
 const char *dasi_get_error_string(void);
 int dasi_version(const char **version);
