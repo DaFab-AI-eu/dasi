@@ -14,14 +14,14 @@
 
 import pytest
 
-from dasi import Key
-from dasi.backend import DASIException, check_type
+from pydasi import Key, DASIException
 
 
 def test_key_typename():
     """
     Construct a key and assert its type name.
     """
+    from pydasi import check_type
 
     key = Key()
 
@@ -180,13 +180,3 @@ def test_key_compare():
     key["key2"] = "value2"
 
     assert key == Key({"key1": "value1", "key2": "value2"})
-
-
-if __name__ == "__main__":
-    test_key_typename()
-    test_key_clear()
-    test_key_empty()
-    test_key_from_string()
-    test_key_invalid()
-    test_key_dictionary()
-    test_key_modify()

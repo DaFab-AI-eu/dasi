@@ -15,7 +15,7 @@
 
 import pytest
 
-from dasi import Dasi, DASIException, Key
+from pydasi import Dasi, Key, DASIException
 
 __simple_data_0__ = b"TESTING SIMPLE LIST 00000000000"
 __simple_data_1__ = b"TESTING SIMPLE LIST 11111111111"
@@ -70,14 +70,16 @@ key3a: Integer;
 
 @pytest.fixture(scope="session")
 def dasi_cfg(tmp_path_factory: pytest.TempPathFactory) -> str:
-    from dasi import Config
+    from pydasi import Config
 
     path = tmp_path_factory.getbasetemp()
 
     schema_ = path / "schema"
     schema_.write_text(__dasi_schema__)
 
-    return Config().default(schema_, path).dump
+    (path / "root").mkdir()
+
+    return Config().default(schema_, path / "root").dump
 
 
 def test_empty_list(dasi_cfg: str):
@@ -137,8 +139,3 @@ def test_simple_list(dasi_cfg: str):
     assert keys[0] == Key(__list_0__)
     assert keys[1] == Key(__list_1__)
     assert keys[2] == Key(__list_2__)
-
-
-if __name__ == "__main__":
-    retcode = pytest.main()
-    print("Return Code: ", retcode)

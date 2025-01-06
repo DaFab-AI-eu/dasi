@@ -24,8 +24,13 @@
 
 #include "Metadata.h"
 #include "Utils.h"
+#include "dasi/api/Dasi.h"
+#include "dasi/api/Key.h"
 
-#include <dasi/api/Dasi.h>
+#include <exception>
+#include <iostream>
+#include <string>
+#include <vector>
 
 constexpr int DATA_SIZE = 24;
 
@@ -40,7 +45,7 @@ int main(int argc, char* argv[]) {
     try {
         // read the user inputs
         const std::vector<std::string> args(argv + 1, argv + argc);
-        configFile          = weather::utils::getInputString(args, "-c", "--config", "dasi.yml");
+        configFile          = weather::utils::getInputString(args, "-c", "--config", "dasi.yaml");
         userInput.user      = weather::utils::getInputString(args, "-u", "--user", "metin");
         userInput.institute = weather::utils::getInputString(args, "-i", "--institute", "ecmwf");
         userInput.type      = weather::utils::getInputString(args, "-t", "--type");

@@ -33,10 +33,9 @@ An example configuration:
    catalogue: toc
    store: file
    spaces:
-      - handler: Default
-      roots:
-      - path: path/to/data/output1
-      - path: path/to/data/output2
+      - roots:
+        - path: path/to/data/output1
+        - path: path/to/data/output2
 
 
 Schema
@@ -65,10 +64,9 @@ Dependencies
 
 * C/C++ compiler
 * `CMake`_
-* `ecbuild`_
 * `eckit`_
-* `metkit`_
 * `fdb`_
+* `AWS SDK C++<https://github.com/aws/aws-sdk-cpp>`_ (only if S3 enabled for FDB)
 
 Build and Install
 ~~~~~~~~~~~~~~~~~
@@ -83,7 +81,6 @@ Build and Install
    BUILD_DIR=build
    INSTALL_DIR=$HOME/local
    export eckit_DIR=$ECKIT_DIR
-   export metkit_DIR=$METKIT_DIR
    export fdb5_DIR=$FDB_DIR
 
    # Create the the build directory
@@ -101,6 +98,9 @@ Build and Install
    # Check installation
    $INSTALL_DIR/bin/dasi --version
 
+
+**Note** To enable S3 support, use the following cmake options:
+`-DENABLE_AWS_S3:BOOL=TRUE -DAWSSDK_ROOT:STRING=/path/to/AWSSDK`
 
 Install pydasi
 --------------

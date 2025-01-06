@@ -17,8 +17,7 @@ import pytest
 
 __config1__ = """schema: ./schema1
 spaces:
-- handler: Default
-  roots:
+- roots:
   - path: ./root1
   - path: ./root2
     wipe: true
@@ -27,8 +26,7 @@ spaces:
 __config2__ = """catalogue: toc
 schema: ./schema2
 spaces:
-- handler: Default
-  roots:
+- roots:
   - path: ./root3
 store: file
 """
@@ -36,8 +34,7 @@ store: file
 __config3__ = """catalogue: toc
 schema: ./schema
 spaces:
-- handler: Default
-  roots:
+- roots:
   - path: ./root1
 store: file
 """
@@ -48,15 +45,15 @@ __config_bad__ = """
 
 def test_dasi_import():
     """
-    Test DASI importing
+    Test importing DASI package
     """
 
-    import dasi
+    import pydasi  # noqa: F401
 
     with pytest.raises(ImportError) as excinfo:
-        import pydasi
+        import dasi  # noqa: F401
 
-    assert "No module named 'pydasi'" == str(excinfo.value)
+    assert str(excinfo.value) == "No module named 'dasi'"
 
 
 def test_dasi_config(tmp_path_factory: pytest.TempPathFactory):
@@ -64,7 +61,7 @@ def test_dasi_config(tmp_path_factory: pytest.TempPathFactory):
     Test DASI configuration
     """
 
-    from dasi import Config, DASIException
+    from pydasi import Config, DASIException
 
     cfg1 = (
         Config()

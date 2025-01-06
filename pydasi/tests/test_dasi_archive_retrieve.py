@@ -15,7 +15,7 @@
 
 import pytest
 
-from dasi import Dasi, DASIException
+from pydasi import Dasi, DASIException
 
 __simple_data_1__ = b"TESTING SIMPLE ARCHIVE 11111111111"
 __simple_data_2__ = b"TESTING SIMPLE ARCHIVE 22222222222"
@@ -34,7 +34,7 @@ key3a: Integer;
 
 @pytest.fixture(scope="session")
 def dasi_cfg(tmp_path_factory: pytest.TempPathFactory) -> str:
-    from dasi import Config
+    from pydasi import Config
 
     tmp_path = tmp_path_factory.getbasetemp()
 
@@ -144,7 +144,3 @@ def test_empty_retrieve(dasi_cfg: str):
     retrieved = dasi.retrieve(query)
 
     assert len(retrieved) == 0
-
-if __name__ == "__main__":
-    retcode = pytest.main()
-    print("Return Code: ", retcode)

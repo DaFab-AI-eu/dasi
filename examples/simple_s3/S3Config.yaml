@@ -1,0 +1,4 @@
+---
+servers:
+  - endpoint: minio:9000
+    region: eu-central-1

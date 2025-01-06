@@ -1,5 +1,5 @@
 include CHANGELOG
 include LICENSE
 include README.md
-include src/dasi/backend/include/*
-include src/dasi/backend/lib/**/lib*
+include src/backend/include/*.h
+include src/backend/libs/**/lib*
