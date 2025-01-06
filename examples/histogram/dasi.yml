@@ -1,7 +1,0 @@
----
-schema: ./schema
-catalogue: toc
-store: file
-spaces:
- - roots:
-    - path: ./root1

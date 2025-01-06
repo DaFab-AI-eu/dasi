@@ -14,11 +14,10 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "pydasi", "src")))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "DASI"
-copyright = "2023, ECMWF,  developed as part of the EuroHPC project IO-SEA"
+copyright = "2024, European Centre for Medium-Range Weather Forecasts (ECMWF)"
 author = "ECMWF"
-version = "0.2.2"
-release = "0.2.2"
-
+# todo: update release version dynamically
+release = "0.2.5"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -29,6 +28,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx_rtd_theme",
 ]
 
 autosummary_generate = True
@@ -42,12 +42,13 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ["std", "cffi"]
 
 templates_path = ["_templates"]
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ".venv", ".tox", "README.md"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
+html_title = "DASI"
 html_static_path = ["_static"]
 
 html_show_sphinx = False

@@ -7,7 +7,7 @@ The `Archive.cc` shows putting data into a DASI database, and the `Retrieve.cc` 
 
 ### MinIO Server
 
-For testing purposes, the `docker-compose.yml` file can be used to run a local MinIO server (`127.0.0.1:9000`) as:
+For testing purposes, the `docker-compose.yml` file can be used to run a local MinIO server (`minio:9000`) as:
 
 ```bash
 docker compose up -d
@@ -16,19 +16,23 @@ docker compose up -d
 ### Configuration
 
 The following file configures DASI to use `./database` (POSIX filesystem) for indexing purposes
-and an external server `127.0.0.1:9000` for storing the bulk data.
+and an external server `minio:9000` for storing the bulk data.
 
 ```yaml
+---
+type: local
+engine: toc
 schema: ./schema
-catalogue: toc
+store: s3
 spaces:
   - roots:
-      - path: ./database
-store: s3
+    - path: ./database
 s3:
-  endpoint: "127.0.0.1:9000"
-  credential: ./s3credentials.yml
-  bucketPrefix: "dasi-"
+  configuration: ./S3Config.yaml
+  credentials: ./S3Credentials.yaml
+  roots:
+  - endpoint: minio:9000
+    bucket: dasi-example-bucket
 ```
 
 ### Schema
