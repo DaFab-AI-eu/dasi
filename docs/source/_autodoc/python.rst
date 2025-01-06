@@ -4,7 +4,7 @@ Python
 Summary
 ~~~~~~~
 
-.. currentmodule:: dasi.dasi
+.. currentmodule:: pydasi.dasi
 
 .. autosummary::
    :toctree: _autosummary
@@ -16,9 +16,9 @@ Summary
    Retrieve
 
 pydasi
-~~~~~~~
+~~~~~~
 
 .. toctree::
    :maxdepth: 2
 
-   dasi
+   pydasi

@@ -40,7 +40,7 @@ The Python interface to DASI is called **pydasi**.
 Simple Archive
 ~~~~~~~~~~~~~~
 
-We use the :py:func:`dasi.dasi.Dasi.archive` function to save example data ``SIMPLE_DATA`` using the metadata ``key`` as:
+We use the :py:meth:`pydasi.dasi.Dasi.archive` function to save example data ``SIMPLE_DATA`` using the metadata ``key`` as:
 
 .. code-block:: python
 
@@ -63,6 +63,6 @@ See :ref:`dasi-config` for config yaml..
 Reference
 ~~~~~~~~~
 
-.. autoclass:: dasi.dasi.Key
+.. automodule:: pydasi.dasi.Key
 
-.. autofunction:: dasi.dasi.Dasi.archive
+.. automethod:: pydasi.dasi.Dasi.archive
