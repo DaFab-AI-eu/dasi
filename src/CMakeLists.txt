@@ -16,9 +16,10 @@
 #
 ########################################################################################################################
 
-configure_file( lib/dasi_version.h.in lib/dasi_version.h @ONLY )
+configure_file( lib/dasi_version.h.in
+                ${PROJECT_BINARY_DIR}/src/lib/dasi_version.h @ONLY )
 
-set( HEADER_FILE_LIST
+list( APPEND HEADER_FILE_LIST
     ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/Generators.h
     ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/ListDetail.h
     ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/PolicyDetail.h
@@ -33,7 +34,9 @@ set( HEADER_FILE_LIST
     ${PROJECT_SOURCE_DIR}/include/dasi/tools/DASITool.h
 )
 
-set( SOURCE_FILE_LIST
+set( HEADER_FILE_LIST ${HEADER_FILE_LIST} PARENT_SCOPE )
+
+list( APPEND SOURCE_FILE_LIST
     api/detail/RetrieveDetail.cc
     api/detail/ListDetail.cc
     api/detail/PolicyDetail.cc
@@ -53,6 +56,8 @@ set( SOURCE_FILE_LIST
     tools/DASITool.cc
 )
 
+set( SOURCE_FILE_LIST ${SOURCE_FILE_LIST} PARENT_SCOPE )
+
 add_library( ${PROJECT_NAME} ${HEADER_FILE_LIST} ${SOURCE_FILE_LIST} )
 
 target_include_directories( ${PROJECT_NAME}
@@ -61,6 +66,7 @@ target_include_directories( ${PROJECT_NAME}
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     INTERFACE
         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )

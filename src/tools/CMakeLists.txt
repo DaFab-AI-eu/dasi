@@ -1,5 +1,7 @@
 
-configure_file( dasi.in ${CMAKE_BINARY_DIR}/bin/dasi @ONLY )
+configure_file( dasi.in dasi @ONLY )
+
+install( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dasi DESTINATION ${CMAKE_INSTALL_BINDIR} )
 
 foreach( _tool info list put get wipe policy schema )
 

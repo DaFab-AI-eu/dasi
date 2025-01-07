@@ -20,7 +20,7 @@ if( NOT DEFINED PROJECT_NAME )
     message( FATAL_ERROR "This CMakeLists.txt file should not be included directly!" )
 endif()
 
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/version.py.in
+configure_file( src/utils/version.py.in
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/version.py @ONLY )
 
 find_package( Python3 REQUIRED COMPONENTS Interpreter )

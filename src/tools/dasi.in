@@ -21,7 +21,7 @@ function usage {
 }
 
 function dasi_builtin_version {
-    echo @dasi_VERSION_STR@
+    echo @dasi_VERSION@
 }
 
 function dasi_builtin_help {

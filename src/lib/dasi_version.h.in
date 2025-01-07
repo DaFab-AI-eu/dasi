@@ -1,7 +1,6 @@
 #ifndef __DASI_LIB_DASI_VERSION_H
 #define __DASI_LIB_DASI_VERSION_H
 
-#define dasi_VERSION_STR "@dasi_VERSION_STR@"
 #define dasi_VERSION     "@dasi_VERSION@"
 
 #define dasi_VERSION_MAJOR @dasi_VERSION_MAJOR@
@@ -14,7 +13,9 @@ inline unsigned int dasi_version_int() {
     return 10000*dasi_VERSION_MAJOR + 1000*dasi_VERSION_MINOR + 1*dasi_VERSION_PATCH;
 }
 
-inline const char * dasi_version_str() {return dasi_VERSION_STR; }
+inline const char* dasi_version_str() {
+    return dasi_VERSION;
+}
 
 inline const char * dasi_git_sha1() { return "@dasi_GIT_SHA1@"; }
 

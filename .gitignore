@@ -31,3 +31,5 @@ docs/**/_autosummary
 .cache/
 .DS_Store
 examples/**/bin
+pydasi/src/utils/version.py
+pydasi/src/backend/libs/Linux/libdasi.so.*
