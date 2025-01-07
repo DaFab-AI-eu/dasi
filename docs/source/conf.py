@@ -5,11 +5,6 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# import os
-# import sys
-#
-# sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'pydasi', 'src')))
-
 import sys
 from pathlib import Path
 
@@ -21,7 +16,7 @@ sys.path.insert(0, str(Path('..', '..', 'pydasi', 'src').resolve()))
 project = 'DASI'
 copyright = '2024, European Centre for Medium-Range Weather Forecasts (ECMWF)'
 author = 'ECMWF'
-release = '0.2.5'
+release = "0.2.6"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -48,7 +43,7 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ['std', 'cffi']
 
 templates_path = ['_templates']
-exclude_patterns = ['build', 'Thumbs.db', '.DS_Store', '.venv', '.tox', 'README.md']
+exclude_patterns = ["build", "Thumbs.db", ".DS_Store", ".venv", ".tox"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
