@@ -1,6 +1,11 @@
 Acknowledgements
 ================
 
+`AI Factory for Copernicus Data at Scale - DaFab <https://www.dafab-ai.eu/>`_
+
+This project has received funding from the European Union’s Horizon Europe Research and Innovation programme under Grant Agreement no. 101128693.
+
+
 `Storage I/O and Data Management for Exascale Architectures <https://iosea-project.eu/>`_
 
 This project has received funding from the European High-Performance Computing Joint Undertaking (JU) and from BMBF/DLR under grant agreement No 955811.

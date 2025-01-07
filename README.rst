@@ -17,7 +17,7 @@ Introduction
 ============
 
 DASI is built on top of FDB [1]_, which has been developed
-at ECMWF [2]_ for previous EU projects (see `Acknowledgements <https://github.com/ecmwf-projects/dasi/blob/master/docs/acknowledgements.rst>`_) and
+at ECMWF [2]_ for previous EU projects (see `Acknowledgements <https://github.com/ecmwf-projects/dasi/blob/master/docs/source/acknowledgements.rst>`_) and
 has been adapted to be highly configurable for different domains.
 Using FDB allows DASI to use various backends, such as POSIX, Ceph and Cortx-Motr object-storage, and NVRAM backend.
 
