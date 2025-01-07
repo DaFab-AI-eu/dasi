@@ -55,11 +55,17 @@ include( CTest )
 
 add_subdirectory( src )
 
-add_subdirectory( pydasi )
+if( BUILD_PYTHON )
+    add_subdirectory( pydasi )
+endif()
 
-add_subdirectory( tests )
+if( BUILD_TESTING )
+    add_subdirectory( tests )
+endif()
 
-add_subdirectory( examples )
+if( BUILD_EXAMPLES )
+    add_subdirectory( examples )
+endif()
 
 # install package
 

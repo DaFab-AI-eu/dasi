@@ -16,12 +16,17 @@
 #
 ########################################################################################################################
 
-if( BUILD_PYTHON )
+if( NOT DEFINED PROJECT_NAME )
+    message( FATAL_ERROR "This CMakeLists.txt file should not be included directly!" )
+endif()
+
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/version.py.in
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/version.py @ONLY )
 
 find_package( Python3 REQUIRED COMPONENTS Interpreter )
 
 if( DEFINED ENV{CONDA_PREFIX} )
-    message( FATAL_ERROR "Conda environment is not supported!" )
+    message( FATAL_ERROR "BUILD_PYTHON set but Conda environment is not supported!" )
 endif()
 
 if( NOT DEFINED ENV{VIRTUAL_ENV} )
@@ -89,6 +94,7 @@ add_custom_target( pydasi_develop
     COMMAND
         ${Python3_EXECUTABLE} -m pip install -e ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Installing pydasi in editable mode ..."
+    VERBATIM
 )
 
 # package pydasi
@@ -104,5 +110,3 @@ add_custom_target( pydasi_package
         ${Python3_EXECUTABLE} -m build --wheel
     COMMENT "Packaging pydasi ..."
 )
-
-endif( )
