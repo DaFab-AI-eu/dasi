@@ -1,0 +1,10 @@
+# Default types
+date:           Date;
+cloud_cover:    Double;
+snow_cover:     Double;
+gsd:            Integer;
+
+# stac item assets
+[ collection, name, gsd
+    [ date, grid, bbox?
+        [ cloud_cover, snow_cover, type? ]]]

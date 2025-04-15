@@ -1,0 +1,15 @@
+# Default types
+
+# bbox?:
+date:           Date;
+cloud_cover:    Double;
+snow_cover:     Double;
+water:          Double;
+darkarea:       Double;
+vegetation:     Double;
+cloudshadow:    Double;
+
+# stac items metadata
+[ collection, date, grid
+    [ bbox?, cloud_cover, snow_cover
+        [ water, darkarea, vegetation, cloudshadow ]]]

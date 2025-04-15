@@ -1,0 +1,7 @@
+---
+schema: ./assets/schema
+catalogue: toc
+store: file
+spaces:
+  - roots:
+    - path: ./assets/root
