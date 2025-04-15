@@ -16,65 +16,26 @@
 #
 ########################################################################################################################
 
-configure_file( lib/dasi_version.h.in
-                ${PROJECT_BINARY_DIR}/src/lib/dasi_version.h @ONLY )
-
-list( APPEND HEADER_FILE_LIST
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/Generators.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/ListDetail.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/PolicyDetail.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/PurgeDetail.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/RetrieveDetail.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/detail/WipeDetail.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/Key.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/Dasi.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/Query.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/api/dasi_c.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/lib/LibDasi.h
-    ${PROJECT_SOURCE_DIR}/include/dasi/tools/DASITool.h
-)
-
-set( HEADER_FILE_LIST ${HEADER_FILE_LIST} PARENT_SCOPE )
+configure_file( lib/dasi_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/lib/dasi_version.h @ONLY )
 
 list( APPEND SOURCE_FILE_LIST
-    api/detail/RetrieveDetail.cc
-    api/detail/ListDetail.cc
-    api/detail/PolicyDetail.cc
-    api/dasi_c.cc
-    api/Query.cc
-    api/Key.cc
-    api/Dasi.cc
-    impl/ListGeneratorImpl.cc
-    impl/ListGeneratorImpl.h
-    impl/RetrieveResultImpl.h
-    impl/RetrieveResultImpl.cc
-    impl/PurgeGeneratorImpl.h
-    impl/PolicyStatusGeneratorImpl.h
-    impl/PolicyStatusGeneratorImpl.cc
-    impl/WipeGeneratorImpl.h
-    lib/LibDasi.cc
-    tools/DASITool.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/detail/RetrieveDetail.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/detail/ListDetail.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/detail/PolicyDetail.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/dasi_c.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/Query.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/Key.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/Dasi.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/ListGeneratorImpl.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/ListGeneratorImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/RetrieveResultImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/RetrieveResultImpl.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/PurgeGeneratorImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/PolicyStatusGeneratorImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/PolicyStatusGeneratorImpl.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/impl/WipeGeneratorImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/LibDasi.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/tools/DASITool.cc
 )
 
 set( SOURCE_FILE_LIST ${SOURCE_FILE_LIST} PARENT_SCOPE )
-
-add_library( ${PROJECT_NAME} ${HEADER_FILE_LIST} ${SOURCE_FILE_LIST} )
-
-target_include_directories( ${PROJECT_NAME}
-    PRIVATE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>
-    PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
-    INTERFACE
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-)
-
-set_target_properties( ${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION} )
-set_target_properties( ${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
-set_target_properties( ${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS} )
-
-target_link_libraries( ${PROJECT_NAME} PUBLIC eckit fdb5 )
-
-add_subdirectory( tools )

@@ -1,4 +1,5 @@
 include( GNUInstallDirs )
+
 set( EXPORT_TARGETS_NAME ${PROJECT_NAME}Targets CACHE INTERNAL "Package exports" )
 
 install( TARGETS ${PROJECT_NAME}

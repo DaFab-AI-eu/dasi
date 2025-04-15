@@ -16,6 +16,7 @@ examples/**/minio/data
 *.so
 *.dylib
 # python stuff
+.venv
 __pycache__
 *-local-config.cmake
 *.egg-info

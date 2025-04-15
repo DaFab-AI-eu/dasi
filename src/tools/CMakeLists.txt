@@ -1,16 +1,17 @@
+include( GNUInstallDirs )
 
-configure_file( dasi.in dasi @ONLY )
+configure_file( dasi.in ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dasi @ONLY )
 
-install( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dasi DESTINATION ${CMAKE_INSTALL_BINDIR} )
+install( PROGRAMS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dasi DESTINATION ${CMAKE_INSTALL_BINDIR} )
 
 foreach( _tool info list put get wipe policy schema )
 
-    set( DASI_TOOL_TARGET dasi-${_tool} )
+    set( _tool_target dasi-${_tool} )
 
-    add_executable( ${DASI_TOOL_TARGET} ${DASI_TOOL_TARGET}.cc )
+    add_executable( ${_tool_target} ${_tool_target}.cc )
 
-    target_link_libraries( ${DASI_TOOL_TARGET} PRIVATE dasi eckit_option )
+    target_link_libraries( ${_tool_target} PRIVATE dasi eckit_option )
 
-    install( TARGETS ${DASI_TOOL_TARGET} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )
+    install( TARGETS ${_tool_target} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )
 
 endforeach()

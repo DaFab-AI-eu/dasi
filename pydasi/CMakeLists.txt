@@ -31,13 +31,13 @@ endif()
 
 if( NOT DEFINED ENV{VIRTUAL_ENV} )
 
-    set( _venv_path ${CMAKE_CURRENT_SOURCE_DIR}/.venv )
+    set( _venv_path ${PROJECT_SOURCE_DIR}/.venv )
 
     message( STATUS "Creating virtual environment: ${_venv_path}" )
 
     execute_process( COMMAND ${Python3_EXECUTABLE} -m venv ${_venv_path} )
 
-    set( ENV{VIRTUAL_ENV} ${CMAKE_CURRENT_SOURCE_DIR}/.venv )
+    set( ENV{VIRTUAL_ENV} ${PROJECT_SOURCE_DIR}/.venv )
 
     set( Python3_FIND_VIRTUALENV FIRST )
 
@@ -63,8 +63,12 @@ add_custom_command(
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND
+        ${Python3_EXECUTABLE} -m pip install pycparser
+    COMMAND
         ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_cffi.py
         ${_c_header} ${_cffi_header}
+    COMMAND
+        ${Python3_EXECUTABLE} -m pip uninstall -y pycparser
     COMMENT "Generating ${_cffi_header} ..."
     VERBATIM
 )
@@ -75,7 +79,7 @@ set( _backend_lib ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/libs/${CMAKE_SYSTEM_NA
 
 add_custom_target( pydasi_backend
     DEPENDS
-        ${PROJECT_NAME}
+        ${PROJECT_NAME} ${_cffi_header}
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ${CMAKE_COMMAND} -E echo "Copying libdasi to pydasi backend ..."
@@ -88,7 +92,7 @@ add_custom_target( pydasi_backend
 
 add_custom_target( pydasi_develop
     DEPENDS
-        ${_cffi_header} pydasi_backend
+        pydasi_backend
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND
@@ -101,7 +105,7 @@ add_custom_target( pydasi_develop
 
 add_custom_target( pydasi_package
     DEPENDS
-        ${_cffi_header} pydasi_backend
+        pydasi_backend
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND

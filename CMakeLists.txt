@@ -26,6 +26,10 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_EXTENSIONS OFF )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
+
 ########################################################################################################################
 # dependencies
 
@@ -53,7 +57,32 @@ include( CTest )
 
 ########################################################################################################################
 
+add_subdirectory( include )
+
 add_subdirectory( src )
+
+add_library( ${PROJECT_NAME} ${HEADER_FILE_LIST} ${SOURCE_FILE_LIST} )
+
+target_include_directories( ${PROJECT_NAME}
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+    INTERFACE
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
+
+set_target_properties( ${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION} )
+set_target_properties( ${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR} )
+set_target_properties( ${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS} )
+
+target_link_libraries( ${PROJECT_NAME} PUBLIC eckit fdb5 )
+
+########################################################################################################################
+
+add_subdirectory( src/tools )
 
 if( BUILD_PYTHON )
     add_subdirectory( pydasi )
@@ -69,6 +98,6 @@ endif()
 
 # install package
 
-include( cmake/install_project.cmake )
+include( cmake/InstallProject.cmake )
 
 ########################################################################################################################
