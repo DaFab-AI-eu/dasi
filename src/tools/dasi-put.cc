@@ -69,4 +69,3 @@ int main(int argc, char **argv) {
     dasi::tools::DASIPut app(argc, argv);
     return app.start();
 }
-
