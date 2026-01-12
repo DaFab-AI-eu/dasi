@@ -20,9 +20,9 @@ from .query import Query
 
 class Retrieve:
     def __init__(self, dasi: FFI.CData, query):
-        from utils.log import getLogger
+        import logging
 
-        self._log = getLogger(__name__)
+        self._log = logging.getLogger(__name__)
 
         self._log.debug("Initialize Retrieve...")
 

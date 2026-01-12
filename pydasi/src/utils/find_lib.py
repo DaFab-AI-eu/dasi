@@ -24,10 +24,9 @@ class FindLib:
     """
 
     def __init__(self, name: str, dir: str):
+        import logging
 
-        from .log import getLogger
-
-        self._log = getLogger(__package__)
+        self._log = logging.getLogger(__name__)
 
         self._log.info("Searching library '%s' ...", name)
 

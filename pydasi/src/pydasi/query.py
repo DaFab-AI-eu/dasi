@@ -30,11 +30,11 @@ class Query:
     """
 
     def __init__(self, query=None):
-        from utils.log import getLogger
+        import logging
 
         lib.load()
 
-        self._log = getLogger(__name__)
+        self._log = logging.getLogger(__name__)
 
         self._log.debug("init query: %s", query)
 

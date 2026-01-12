@@ -40,11 +40,11 @@ class Dasi:
 
         :param str config: the configuration file.
         """
-        from utils.log import getLogger
+        import logging
 
         lib.load()
 
-        self._log = getLogger(__name__)
+        self._log = logging.getLogger(__name__)
 
         self._log.debug("Initialize Dasi...")
 

@@ -33,7 +33,3 @@ __all__ = [
     "check_type",
     "Config",
 ]
-
-import utils.log as log
-
-log.init_logging("DASI: Data Access and Storage Interface")

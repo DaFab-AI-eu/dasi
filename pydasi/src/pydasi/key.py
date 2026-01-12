@@ -21,11 +21,11 @@ class Key:
     """
 
     def __init__(self, key=None):
-        from utils.log import getLogger
+        import logging
 
         lib.load()
 
-        self._log = getLogger(__name__)
+        self._log = logging.getLogger(__name__)
 
         self._log.debug("init key: %s", key)
 

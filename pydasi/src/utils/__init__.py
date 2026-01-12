@@ -16,12 +16,11 @@
 from .config import Config
 from .find_lib import FindLib
 
-from . import log, version
+from . import version
 
 
 __all__ = [
     "FindLib",
     "Config",
-    "log",
     "version",
 ]

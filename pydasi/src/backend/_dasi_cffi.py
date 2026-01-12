@@ -15,7 +15,9 @@
 from os import path as ospath
 from cffi import FFI
 
-from utils import FindLib, log, version
+import logging
+
+from utils import FindLib, version
 
 
 ffi = FFI()
@@ -142,7 +144,7 @@ class PatchedLib:
         osenv["ECKIT_ASSERT_FAILED_IS_SILENT"] = "1"
 
         self.__loaded = False
-        self._log = log.getLogger(__package__)
+        self._log = logging.getLogger(__package__)
         self._log.info("version: %s", version.__version__)
 
     def load(self):

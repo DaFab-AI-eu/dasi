@@ -36,9 +36,9 @@ __default_path__ = "./dasi.yaml"
 
 class Config(object):
     def __init__(self) -> None:
-        from utils.log import getLogger
+        import logging
 
-        self._log = getLogger(__name__)
+        self._log = logging.getLogger(__name__)
 
         self._log.debug("Config init...")
 
