@@ -1,0 +1,45 @@
+{
+    "name": "DASI Development",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "target": "build"
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "remoteUser": "developer",
+    "containerEnv": {
+        "INSTALL_PREFIX": "/opt/ecmwf",
+        "CMAKE_PREFIX_PATH": "/opt/ecmwf",
+        "LD_LIBRARY_PATH": "/opt/ecmwf/lib",
+        "DASI_DIR": "/opt/ecmwf"
+    },
+    "mounts": [
+        "source=dasi-build,target=/workspace/build,type=volume"
+    ],
+    "initializeCommand": "docker volume create dasi-build 2>/dev/null || true",
+    "postCreateCommand": ".devcontainer/post-create.sh",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "python.defaultInterpreterPath": "/opt/venv/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": ["pydasi/tests"],
+                "cmake.configureOnOpen": false,
+                "cmake.buildDirectory": "${workspaceFolder}/build",
+                "cmake.installPrefix": "/opt/ecmwf",
+                "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "ms-python.pytest-adapter",
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools-extension-pack",
+                "vadimcn.vscode-lldb"
+            ]
+        }
+    }
+}

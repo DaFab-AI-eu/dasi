@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+build/
+_build/
+*.o
+*.so
+*.dylib
+*.a
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+*.whl
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation build
+docs/_build/
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
