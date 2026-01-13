@@ -6,6 +6,10 @@
 # Build artifacts
 build/
 _build/
+bundle/build/
+bundle/eckit/
+bundle/metkit/
+bundle/fdb/
 *.o
 *.so
 *.dylib

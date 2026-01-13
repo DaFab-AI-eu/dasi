@@ -22,22 +22,20 @@ project( dasi-example-s3 VERSION 0.1 LANGUAGES CXX )
 
 set( CMAKE_CXX_STANDARD 17 )
 
-if( NOT TARGET dasi )
-    find_package( dasi 0.2.3 REQUIRED )
-endif()
+find_package( dasi 0.2.3 REQUIRED )
 
 include_directories( include )
 
 # archive
 add_executable( archive src/Archive.cc )
-target_link_libraries( archive PUBLIC dasi )
+target_link_libraries( archive PUBLIC dasi::dasi )
 set_target_properties( archive
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
 )
 
 # retrieve
 add_executable( retrieve src/Retrieve.cc )
-target_link_libraries( retrieve PUBLIC dasi )
+target_link_libraries( retrieve PUBLIC dasi::dasi )
 set_target_properties( retrieve
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
 )

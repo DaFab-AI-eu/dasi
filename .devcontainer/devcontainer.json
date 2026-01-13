@@ -1,22 +1,9 @@
 {
     "name": "DASI Development",
-    "build": {
-        "dockerfile": "../Dockerfile",
-        "target": "build"
-    },
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "devcontainer",
     "workspaceFolder": "/workspace",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
     "remoteUser": "developer",
-    "containerEnv": {
-        "INSTALL_PREFIX": "/opt/ecmwf",
-        "CMAKE_PREFIX_PATH": "/opt/ecmwf",
-        "LD_LIBRARY_PATH": "/opt/ecmwf/lib",
-        "DASI_DIR": "/opt/ecmwf"
-    },
-    "mounts": [
-        "source=dasi-build,target=/workspace/build,type=volume"
-    ],
-    "initializeCommand": "docker volume create dasi-build 2>/dev/null || true",
     "postCreateCommand": ".devcontainer/post-create.sh",
     "customizations": {
         "vscode": {

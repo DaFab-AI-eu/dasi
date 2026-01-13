@@ -67,8 +67,6 @@ add_custom_command(
     COMMAND
         ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/generate_cffi.py
         ${_c_header} ${_cffi_header}
-    COMMAND
-        ${Python3_EXECUTABLE} -m pip uninstall -y pycparser
     COMMENT "Generating ${_cffi_header} ..."
     VERBATIM
 )
