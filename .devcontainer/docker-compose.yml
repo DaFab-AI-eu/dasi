@@ -24,9 +24,7 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio1234
     volumes:
-      - minio-data:/data
+      - ./data:/data
+      - ./certs:/root/.minio/certs
     command: minio server /data --console-address ":9090"
     restart: unless-stopped
-
-volumes:
-  minio-data:

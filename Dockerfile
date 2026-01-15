@@ -27,11 +27,7 @@ RUN set -ex; \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
     # Python symlink and tools
     ln -s /usr/bin/python3.11 /usr/bin/python && \
-    python -m pip install -q --upgrade pip setuptools wheel gcovr && \
-    # Configure module loading for MPI and GCC toolset
-    echo "module load mpi" >> /etc/profile.d/dev-env.sh && \
-    echo 'export FI_PROVIDER="^psm3"' >> /etc/profile.d/dev-env.sh && \
-    echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
+    python -m pip install -q --upgrade pip setuptools wheel gcovr
 
 # Environment configuration
 ENV INSTALL_PREFIX=/opt/ecmwf
@@ -84,6 +80,11 @@ FROM build-dependencies AS dev-env
 ARG DEV_USERNAME=developer
 ARG DOCKER_UID=1000
 ARG DOCKER_GID=${DOCKER_UID}
+
+# Configure shell environment for interactive use
+RUN echo "module load mpi" >> /etc/profile.d/dev-env.sh && \
+    echo 'export FI_PROVIDER="^psm3"' >> /etc/profile.d/dev-env.sh && \
+    echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
 
 # Install development and debugging tools
 RUN set -ex; \
@@ -138,7 +139,7 @@ WORKDIR /src
 
 COPY . /src/dasi
 
-# Build via the bundle (flags loaded from Linux.cmake)
+# Build via the bundle
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
     cmake -S /src/dasi/bundle -B /src/dasi/bundle/build \
@@ -147,13 +148,12 @@ RUN set -ex; \
         -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/lib64/cmake" \
         -DAWSSDK_ROOT=/usr/local \
         -DAWSSDK_DIR=/usr/local/lib64/cmake/AWSSDK \
-        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} && \
+        -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+        -DBUILD_TESTING=ON && \
     cmake --build /src/dasi/bundle/build --parallel $(nproc) && \
     cmake --install /src/dasi/bundle/build && \
     cmake --build /src/dasi/bundle/build --target pydasi_package && \
-    # Keep wheel for runtime, clean up source
-    cp /src/dasi/pydasi/dist/pydasi-*.whl /tmp/ && \
-    rm -rf /src
+    cp /src/dasi/pydasi/dist/pydasi-*.whl /tmp/
 
 # =============================================================================
 # Runtime stage
