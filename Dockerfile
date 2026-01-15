@@ -176,6 +176,7 @@ COPY --from=dasi-builder /opt/ecmwf /opt/ecmwf
 
 # Copy AWS SDK and libaec runtime libraries
 COPY --from=dasi-builder /usr/local/lib64/libaws* /usr/local/lib64/
+COPY --from=dasi-builder /usr/local/lib64/libs2n* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libaec* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libsz* /usr/local/lib64/
 
