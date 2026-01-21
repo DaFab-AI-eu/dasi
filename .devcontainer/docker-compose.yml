@@ -1,9 +1,14 @@
 services:
+
   devcontainer:
     build:
       context: ..
       dockerfile: Dockerfile
       target: dev-env
+
+    depends_on:
+      - minio
+
     volumes:
       - ..:/workspace:cached
     environment:
@@ -12,8 +17,6 @@ services:
       LD_LIBRARY_PATH: /opt/ecmwf/lib64
       DASI_DIR: /opt/ecmwf
     command: sleep infinity
-    depends_on:
-      - minio
 
   minio:
     image: minio/minio:latest
@@ -24,7 +27,7 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio1234
     volumes:
-      - ./data:/data
-      - ./certs:/root/.minio/certs
+      - ./minio/data:/data
+      - ./minio/certs:/root/.minio/certs
     command: minio server /data --console-address ":9090"
     restart: unless-stopped
