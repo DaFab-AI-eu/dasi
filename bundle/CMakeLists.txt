@@ -28,16 +28,9 @@ include( "./${CMAKE_SYSTEM_NAME}.cmake" )
 
 ecbuild_bundle_initialize()
 
-# Disable features not needed for bundle build
-set( ENABLE_TESTS OFF CACHE BOOL "Disable tests for dependencies" )
-set( ENABLE_ECKIT_SQL OFF CACHE BOOL "Disable eckit SQL" )
-
-# ECMWF dependencies
 ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab UPDATE )
-
-# DASI
 ecbuild_bundle( PROJECT dasi SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/.." )
 
 ecbuild_bundle_finalize()

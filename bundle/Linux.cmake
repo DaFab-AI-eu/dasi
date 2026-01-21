@@ -30,10 +30,11 @@ ecbuild_set_verbose( ENABLE_PYTHON           ON   CACHE  BOOL "python" FORCE)
 ecbuild_set_verbose( ENABLE_FORTRAN          ON   CACHE  BOOL "no Fortran" FORCE )
 ecbuild_set_verbose( ENABLE_MPI              OFF  CACHE  BOOL "no MPI" FORCE )
 ecbuild_set_verbose( ENABLE_EXAMPLES         OFF  CACHE  BOOL "no examples" FORCE )
-ecbuild_set_verbose( ENABLE_TESTS            OFF  CACHE  BOOL "no tests" FORCE )
 ecbuild_set_verbose( ENABLE_ECCODES          OFF  CACHE  BOOL "eccodes" FORCE )
 ecbuild_set_verbose( ENABLE_AWSSDK_S3        ON   CACHE  BOOL "eckit s3 support" FORCE )
 ecbuild_set_verbose( ENABLE_S3FDB            ON   CACHE  BOOL "fdb s3 backend" FORCE )
 
 # DASI options
-ecbuild_set_verbose( BUILD_PYTHON            ON   CACHE  BOOL "build pydasi" FORCE )
+ecbuild_set_verbose( BUILD_PYTHON      ON  CACHE   BOOL "Enable build pydasi"   FORCE )
+ecbuild_set_verbose( BUILD_EXAMPLES    ON  CACHE   BOOL "Enable build examples" FORCE )
+ecbuild_set_verbose( BUILD_TESTING     ON  CACHE   BOOL "Enable build tests"    FORCE )
