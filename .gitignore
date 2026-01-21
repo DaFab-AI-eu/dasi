@@ -35,3 +35,7 @@ examples/**/bin
 pydasi/src/utils/version.py
 pydasi/src/backend/libs/Linux/libdasi.so.*
 .devcontainer/minio/data
+bundle/eckit
+bundle/fdb
+bundle/metkit
+bundle/dasi
