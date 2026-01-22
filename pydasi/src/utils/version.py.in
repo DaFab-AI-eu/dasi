@@ -13,10 +13,30 @@
 # limitations under the License.
 
 
-__version__ = "@CMAKE_PROJECT_VERSION@"
+from typing import Final
+
+from packaging.version import Version
 
 
-def is_newer(ver_a: str) -> bool:
-    from packaging.version import Version
+__version__: Final[str] = "@dasi_VERSION@"
 
-    return Version(ver_a) >= Version(__version__)
+
+def is_compatible(library_version: str) -> bool:
+    """Check if library version is compatible with Python package.
+    
+    Args:
+        library_version: Version string from the C library
+        
+    Returns:
+        True if library version >= Python package version (compatible)
+        False if library is older than Python package (incompatible)
+        
+    Raises:
+        ValueError: If version strings are invalid
+    """
+    try:
+        lib_ver = Version(library_version)
+        pkg_ver = Version(__version__)
+        return lib_ver >= pkg_ver
+    except Exception as e:
+        raise ValueError(f"Invalid version format: {e}") from e

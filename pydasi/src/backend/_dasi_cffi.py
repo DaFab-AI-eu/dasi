@@ -187,12 +187,16 @@ class PatchedLib:
 
         self.__loaded = True
 
-    def check_version(self):
-        version_ = read_lib_version(self.__lib)
-        if version.is_newer(version_):
-            self._log.info("- version: %s", version_)
+    def check_version(self) -> None:
+        """Validate that the C library version is compatible with Python package."""
+        library_version = read_lib_version(self.__lib)
+
+        if version.is_compatible(library_version):
+            self._log.info("C Library version %s is compatible (package: %s)",
+                           library_version, version.__version__)
         else:
-            msg = "The library version [{}] is old.".format(version_)
+            msg = (f"C Library version {library_version} is older than Python package "
+                   f"{version.__version__}. Please upgrade the C library.")
             self._log.error(msg)
             raise CFFIModuleLoadFailed(msg)
 

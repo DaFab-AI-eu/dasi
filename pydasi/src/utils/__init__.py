@@ -13,14 +13,13 @@
 # limitations under the License.
 
 
-from .config import Config
-from .find_lib import FindLib
-
-from . import version
+from utils.config import Config
+from utils.find_lib import FindLib
+from utils.version import __version__
 
 
 __all__ = [
     "FindLib",
     "Config",
-    "version",
+    "__version__",
 ]

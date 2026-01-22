@@ -20,6 +20,7 @@ from .list import List
 from .retrieve import Retrieve
 from backend import DASIException, check_type
 from utils import Config
+from utils.version import __version__
 
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "DASIException",
     "check_type",
     "Config",
+    "__version__",
 ]
