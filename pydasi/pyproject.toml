@@ -82,21 +82,27 @@ xfail_strict = true
 filterwarnings = ["once::Warning"]
 markers = ["slow", "parallel"]
 
-# flake8 configuration
-[tool.flake8]
-max-line-length = 80
-extend-ignore = "E226, E501, W503"
-exclude = [
-  ".git",
-  "__pycache__",
-  ".venv",
-  ".eggs",
-  ".tox",
-  "build",
-  "_build",
-  "dist",
-  "docs",
+# ruff configuration (replaces flake8)
+[tool.ruff]
+line-length = 80
+target-version = "py39"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort
+  "N",   # pep8-naming
+  "UP",  # pyupgrade
+  "B",   # flake8-bugbear
 ]
+ignore = ["E226", "E501", "W503"]
+
+[tool.ruff.lint.isort]
+force-single-line = false
+combine-as-imports = true
 
 # Black formatting
 [tool.black]
@@ -120,7 +126,7 @@ exclude = '''
 # isort
 [tool.isort]
 profile = "black"
-line_length = 79
+line_length = 80
 multi_line_output = 3
 include_trailing_comma = true
 src_paths = ["src"]

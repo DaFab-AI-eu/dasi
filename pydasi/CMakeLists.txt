@@ -86,7 +86,7 @@ add_custom_target( pydasi_backend
     VERBATIM
 )
 
-# install pydasi package in editable mode
+# install pydasi package in editable mode with dev dependencies
 
 add_custom_target( pydasi_develop
     DEPENDS
@@ -94,8 +94,8 @@ add_custom_target( pydasi_develop
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND
-        ${Python3_EXECUTABLE} -m pip install -e ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Installing pydasi in editable mode ..."
+        ${Python3_EXECUTABLE} -m pip install -e "${CMAKE_CURRENT_SOURCE_DIR}[dev,tests]"
+    COMMENT "Installing pydasi in editable mode with dev dependencies ..."
     VERBATIM
 )
 
@@ -111,4 +111,55 @@ add_custom_target( pydasi_package
     COMMAND
         ${Python3_EXECUTABLE} -m build --wheel
     COMMENT "Packaging pydasi ..."
+)
+
+# run pydasi tests
+
+add_custom_target( pydasi_test
+    DEPENDS
+        pydasi_develop
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND
+        ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib:$ENV{LD_LIBRARY_PATH}
+            ${Python3_EXECUTABLE} -m pytest tests/ -v
+    COMMENT "Running pydasi tests ..."
+    VERBATIM
+)
+
+# format pydasi code
+
+add_custom_target( pydasi_format
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND
+        ${Python3_EXECUTABLE} -m black src/ tests/
+    COMMAND
+        ${Python3_EXECUTABLE} -m isort src/ tests/
+    COMMENT "Formatting pydasi code with black and isort ..."
+    VERBATIM
+)
+
+# lint pydasi code
+
+add_custom_target( pydasi_lint
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND
+        ${Python3_EXECUTABLE} -m ruff check src/ tests/
+    COMMAND
+        ${Python3_EXECUTABLE} -m mypy src/pydasi/
+    COMMENT "Linting pydasi code with ruff and mypy ..."
+    VERBATIM
+)
+
+# run tests with coverage
+
+add_custom_target( pydasi_coverage
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND
+        ${Python3_EXECUTABLE} -m pytest tests/ --cov=pydasi --cov-report=html --cov-report=term
+    COMMENT "Running pydasi tests with coverage ..."
+    VERBATIM
 )

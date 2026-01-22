@@ -154,6 +154,7 @@ class PatchedLib:
         self._log.info("Loading DASI C library...")
 
         # parse the C source; types, functions, globals, etc.
+        # This must be done only once, as CFFI caches type definitions
         with open(__source_file__) as sf:
             ffi.cdef(sf.read())
 
@@ -185,6 +186,7 @@ class PatchedLib:
         # Initialise and setup for python-appropriate behaviour
         self.__lib.dasi_initialise_api()
 
+        # Mark as loaded AFTER all initialization is complete
         self.__loaded = True
 
     def check_version(self) -> None:
