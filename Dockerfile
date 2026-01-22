@@ -137,14 +137,13 @@ WORKDIR /workspace/dasi/bundle
 # =============================================================================
 FROM build-dependencies AS dasi-builder
 
-WORKDIR /src
-
 COPY ./bundle /src/dasi-bundle
+
+WORKDIR /tmp/dasi-bundle
 
 # Build via the bundle
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
-    cd /tmp/dasi-bundle && \
     cmake -S /src/dasi-bundle -B . -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         # -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/lib64/cmake" \
@@ -154,7 +153,7 @@ RUN set -ex; \
     cmake --build . --target test -- --output-on-failure && \
     cmake --build . --target install pydasi_package && \
     cp ./pydasi/dist/pydasi-*.whl /tmp/ && \
-    rm -rf /tmp/build/dasi-bundle
+    rm -rf /tmp/dasi-bundle
 
 # =============================================================================
 # Runtime stage
