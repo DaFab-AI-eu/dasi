@@ -10,13 +10,21 @@ services:
       - minio
 
     volumes:
-      - ..:/workspace:cached
-    environment:
-      INSTALL_PREFIX: /opt/ecmwf
-      CMAKE_PREFIX_PATH: /opt/ecmwf:/opt/ecmwf/lib64/cmake
-      LD_LIBRARY_PATH: /opt/ecmwf/lib64
-      DASI_DIR: /opt/ecmwf
-    command: sleep infinity
+      - ..:/workspace/dasi:cached
+
+    # use a ptrace-based debugger C++
+    cap_add:
+        - SYS_PTRACE
+    security_opt:
+        - seccomp:unconfined
+
+    # allow core dumps
+    privileged: true
+    ulimits:
+        core: -1
+
+    stdin_open: true
+    tty: true
 
   minio:
     image: minio/minio:latest

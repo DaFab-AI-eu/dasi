@@ -2,19 +2,24 @@
     "name": "DASI Development",
     "dockerComposeFile": "docker-compose.yml",
     "service": "devcontainer",
-    "workspaceFolder": "/workspace",
+    "workspaceFolder": "/workspace/dasi/bundle",
     "remoteUser": "developer",
-    "postCreateCommand": ".devcontainer/post-create.sh",
     "customizations": {
         "vscode": {
             "settings": {
-                "terminal.integrated.defaultProfile.linux": "bash",
-                "python.defaultInterpreterPath": "/opt/venv/bin/python",
+                "python.defaultInterpreterPath": "${workspaceFolder}/dasi/.venv/bin/python",
                 "python.testing.pytestEnabled": true,
                 "python.testing.pytestArgs": ["pydasi/tests"],
                 "cmake.configureOnOpen": false,
-                "cmake.buildDirectory": "${workspaceFolder}/build",
-                "cmake.installPrefix": "/opt/ecmwf",
+                "cmake.buildDirectory": "/tmp/build/dasi-bundle",
+                "cmake.exportCompileCommandsFile": true,
+                "cmake.installPrefix": "/usr/local",
+                "cmake.cmakePath": "/usr/bin/cmake",
+                "cmake.configureSettings": {
+                    "CMAKE_C_COMPILER": "/opt/rh/gcc-toolset-14/root/usr/bin/gcc",
+                    "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-14/root/usr/bin/g++"
+                },
+                "cmake.sourceDirectory": "${workspaceFolder}",
                 "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
             },
             "extensions": [
@@ -23,9 +28,7 @@
                 "ms-python.debugpy",
                 "ms-python.pytest-adapter",
                 "ms-vscode.cpptools",
-                "ms-vscode.cmake-tools",
-                "ms-vscode.cpptools-extension-pack",
-                "vadimcn.vscode-lldb"
+                "ms-vscode.cmake-tools"
             ]
         }
     }
