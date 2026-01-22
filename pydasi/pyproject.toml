@@ -25,13 +25,25 @@ requires-python = ">=3.9"
 dependencies = ["cffi>=1.1.1", "pyyaml>=5.3.1", "packaging>=22.0"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-env"]
+tests = [
+    "pytest>=6.0",
+    "pytest-env",
+    "pytest-cov",
+]
+dev = [
+    "black>=22.0",
+    "isort>=5.10",
+    "mypy>=0.990",
+    "ruff>=0.1.0",
+]
+all = ["pydasi[tests,dev]"]
 
 [project.urls]
-Source = "https://github.com/ecmwf-projects/dasi"
-Issues = "https://github.com/ecmwf-projects/dasi/issues"
+Homepage = "https://github.com/ecmwf-projects/dasi"
 Documentation = "https://pydasi.readthedocs.io/"
-Changelog = "https://github.com/ecmwf-projects/dasi/blob/master/CHANGELOG"
+Repository = "https://github.com/ecmwf-projects/dasi"
+"Bug Tracker" = "https://github.com/ecmwf-projects/dasi/issues"
+Changelog = "https://github.com/ecmwf-projects/dasi/blob/master/CHANGELOG.md"
 
 [build-system]
 requires = ["setuptools >= 45.0", "cffi>=1.1.1"]
