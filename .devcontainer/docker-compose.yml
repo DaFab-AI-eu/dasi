@@ -1,3 +1,5 @@
+name: dasi-dev
+
 services:
 
   devcontainer:
@@ -7,7 +9,8 @@ services:
       target: dev-env
 
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
 
     volumes:
       - ..:/workspace/dasi:cached
@@ -26,6 +29,24 @@ services:
     stdin_open: true
     tty: true
 
+  dasi-tester:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-tester
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ..:/workspace/dasi
+    working_dir: /workspace
+    command: >
+      bash -lc "
+        set -ex &&
+        ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
+        cmake --build /tmp/build/dasi-bundle --target pydasi_test
+      "
+
   minio:
     image: minio/minio:latest
     ports:
@@ -38,4 +59,9 @@ services:
       - ./minio/data:/data
       - ./minio/certs:/root/.minio/certs
     command: minio server /data --console-address ":9090"
+    healthcheck:
+      test: ["CMD", "curl", "-fk", "https://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
