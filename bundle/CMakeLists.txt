@@ -31,6 +31,6 @@ ecbuild_bundle_initialize()
 ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab UPDATE )
-ecbuild_bundle( PROJECT dasi SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/.." )
+ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" BRANCH main          MANUAL )
 
 ecbuild_bundle_finalize()
