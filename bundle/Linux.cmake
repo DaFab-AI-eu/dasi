@@ -33,6 +33,7 @@ ecbuild_set_verbose( ENABLE_EXAMPLES         OFF  CACHE  BOOL "no examples" FORC
 ecbuild_set_verbose( ENABLE_ECCODES          OFF  CACHE  BOOL "eccodes" FORCE )
 ecbuild_set_verbose( ENABLE_AWSSDK_S3        ON   CACHE  BOOL "eckit s3 support" FORCE )
 ecbuild_set_verbose( ENABLE_S3FDB            ON   CACHE  BOOL "fdb s3 backend" FORCE )
+ecbuild_set_verbose( ENABLE_TESTS            ON   CACHE  BOOL "test" FORCE )
 
 # DASI options
 ecbuild_set_verbose( BUILD_PYTHON      ON  CACHE   BOOL "Enable build pydasi"   FORCE )
