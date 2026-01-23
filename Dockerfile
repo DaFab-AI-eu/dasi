@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # =============================================================================
 # Base image with compilers, tools, and pre-built dependencies (ecbuild, libaec, aws-sdk)
 # =============================================================================
@@ -10,19 +9,19 @@ RUN set -ex; \
     dnf config-manager --set-enabled crb && /usr/bin/crb enable && \
     dnf config-manager --set-enabled devel && \
     dnf install -y \
-        # Build tools
-        git cmake ninja-build diffutils which unzip \
-        # Compilers
-        gcc gcc-c++ gcc-fortran \
-        binutils glibc-devel bison flex \
-        # GCC toolset 14
-        gcc-toolset-14 gcc-toolset-14-binutils gcc-toolset-14-libstdc++-devel gcc-toolset-14-libasan-devel \
-        # Development libraries
-        ncurses-devel bzip2-devel openssl-devel lz4-devel libcurl-devel zlib-devel libuuid-devel \
-        # MPI support
-        openmpi openmpi-devel \
-        # Python
-        python3.11 python3.11-pip python3.11-devel && \
+    # Build tools
+    git cmake ninja-build diffutils which unzip \
+    # Compilers
+    gcc gcc-c++ gcc-fortran \
+    binutils glibc-devel bison flex \
+    # GCC toolset 14
+    gcc-toolset-14 gcc-toolset-14-binutils gcc-toolset-14-libstdc++-devel gcc-toolset-14-libasan-devel \
+    # Development libraries
+    ncurses-devel bzip2-devel openssl-devel lz4-devel libcurl-devel zlib-devel libuuid-devel \
+    # MPI support
+    openmpi openmpi-devel \
+    # Python
+    python3.11 python3.11-pip python3.11-devel && \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
     # Python symlink and tools
@@ -45,9 +44,9 @@ ADD --keep-git-dir=true https://gitlab.dkrz.de/k202009/libaec.git /tmp/libaec
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
     cmake -S /tmp/libaec -B /tmp/libaec/build \
-        -G Ninja \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr/local && \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local && \
     cmake --build /tmp/libaec/build --target install && \
     rm -rf /tmp/libaec
 
@@ -55,12 +54,12 @@ RUN set -ex; \
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
     git clone --depth 1 --recurse-submodules --shallow-submodules \
-        https://github.com/aws/aws-sdk-cpp /tmp/aws-sdk-cpp && \
+    https://github.com/aws/aws-sdk-cpp /tmp/aws-sdk-cpp && \
     cmake -S /tmp/aws-sdk-cpp -B /tmp/aws-sdk-cpp/build \
-        -G Ninja \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DBUILD_ONLY="s3" && \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_ONLY="s3" && \
     cmake --build /tmp/aws-sdk-cpp/build --target install && \
     rm -rf /tmp/aws-sdk-cpp
 
@@ -70,12 +69,6 @@ RUN set -ex; \
     unzip /tmp/awscliv2.zip -d /tmp && \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
-
-# # Environment configuration
-# ENV INSTALL_PREFIX=/opt/ecmwf
-# ENV CMAKE_PREFIX_PATH=${INSTALL_PREFIX}:${INSTALL_PREFIX}/lib64/cmake:/usr/local:/usr/local/lib64/cmake
-# ENV LD_LIBRARY_PATH=${INSTALL_PREFIX}/lib64:/usr/local/lib64
-# ENV PATH=${INSTALL_PREFIX}/bin:${PATH}
 
 # =============================================================================
 # Development environment for devcontainer
@@ -92,11 +85,11 @@ RUN echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
 # Install development and debugging tools
 RUN set -ex; \
     dnf install -y \
-        # Debugging and profiling
-        gdb valgrind systemtap ltrace strace perf papi lcov \
-        llvm-toolset clang-tools-extra \
-        # Editor and utilities
-        vim-enhanced less sudo && \
+    # Debugging and profiling
+    gdb valgrind systemtap ltrace strace perf papi lcov \
+    llvm-toolset clang-tools-extra \
+    # Editor and utilities
+    vim-enhanced less sudo && \
     dnf debuginfo-install -y gcc glibc libgcc libstdc++ && \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/*
@@ -104,12 +97,6 @@ RUN set -ex; \
 # Install MinIO Client
 RUN curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
     chmod +x /usr/local/bin/mc
-
-# # Set up Python virtual environment
-# RUN python -m venv /opt/venv && chown -R ${DEV_USERNAME}:${DEV_USERNAME} /opt/venv
-# ENV PATH="/opt/venv/bin:${PATH}"
-# ENV VIRTUAL_ENV="/opt/venv"
-# ENV DASI_DIR=${INSTALL_PREFIX}
 
 # Install Python development tools
 RUN pip install --no-cache-dir \
@@ -126,34 +113,39 @@ USER ${DEV_USERNAME}
 
 WORKDIR /workspace/dasi/bundle
 
-# COPY --chown=${DEV_USERNAME}:${DEV_USERNAME} ./bundle ./dasi-bundle
-
-# WORKDIR /workspace/dasi-bundle
-
-# CMD ["/bin/bash", "-l"]
-
 # =============================================================================
-# Builds DASI and dependencies
+# Builds DASI
 # =============================================================================
 FROM build-dependencies AS dasi-builder
 
-COPY ./bundle /src/dasi-bundle
+WORKDIR /src/dasi-bundle
 
-WORKDIR /tmp/dasi-bundle
+COPY ./bundle/CMakeLists.txt .
+COPY ./bundle/Linux.cmake .
 
-# Build via the bundle
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
-    cmake -S /src/dasi-bundle -B . -G Ninja \
-        -DCMAKE_BUILD_TYPE=Release \
-        # -DCMAKE_PREFIX_PATH="/usr/local;/usr/local/lib64/cmake" \
-        # -DAWSSDK_ROOT=/usr/local \
-        # -DAWSSDK_DIR=/usr/local/lib64/cmake/AWSSDK \
-        -DCMAKE_INSTALL_PREFIX=/opt/ecmwf && \
-    cmake --build . --target test -- --output-on-failure && \
-    cmake --build . --target install pydasi_package && \
-    cp ./pydasi/dist/pydasi-*.whl /tmp/ && \
-    rm -rf /tmp/dasi-bundle
+    sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
+    sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
+    cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/dasi && \
+    cmake --build /tmp/build/dasi-bundle --target all install pydasi_package && \
+    cp ./dasi/pydasi/dist/pydasi-*.whl /tmp/ && \
+    rm -rf /tmp/build/dasi-bundle
+
+# =============================================================================
+# Tests DASI
+# =============================================================================
+FROM dasi-builder AS dasi-tester
+
+WORKDIR /src/dasi-bundle
+
+RUN set -ex; \
+    source /opt/rh/gcc-toolset-14/enable && \
+    sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
+    sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake && \
+    cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
+    cmake --build /tmp/build/dasi-bundle --target all pydasi_develop
 
 # =============================================================================
 # Runtime stage
@@ -172,18 +164,12 @@ RUN set -ex; \
     python -m ensurepip --upgrade && \
     python -m pip install --upgrade pip
 
-# Copy installed DASI and dependencies
-COPY --from=dasi-builder /opt/ecmwf /opt/ecmwf
-
-# Copy AWS SDK and libaec runtime libraries
+# Copy DASI installation from builder
+COPY --from=dasi-builder /usr/local/dasi /usr/local/
 COPY --from=dasi-builder /usr/local/lib64/libaws* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libs2n* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libaec* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libsz* /usr/local/lib64/
-
-ENV LD_LIBRARY_PATH=/opt/ecmwf/lib64:/usr/local/lib64
-ENV PATH=/opt/ecmwf/bin:${PATH}
-# ENV DASI_DIR=/opt/ecmwf
 
 # Install pydasi wheel
 COPY --from=dasi-builder /tmp/pydasi-*.whl /tmp/
