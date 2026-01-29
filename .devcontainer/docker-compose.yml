@@ -37,14 +37,23 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-    volumes:
-      - ..:/workspace/dasi
-    working_dir: /workspace
     command: >
       bash -lc "
         set -ex &&
         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
         cmake --build /tmp/build/dasi-bundle --target pydasi_test
+      "
+
+  dasi-runtime:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-runtime
+    command: >
+      bash -lc "
+        echo 'DASI Lib version:' $(dasi version) &&
+        python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
+        python -c 'import pydasi; print(f\"pydasi version: {pydasi.__version__}\")'
       "
 
   minio:
