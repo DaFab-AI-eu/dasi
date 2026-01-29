@@ -24,13 +24,13 @@ def test_version_format():
 
 def test_version_compatibility():
     """Test version comparison logic."""
-    assert version.is_compatible("0.2.7")  # Same
+    assert version.is_compatible(version.__version__)  # Same
     assert version.is_compatible("0.3.0")  # Newer
     assert not version.is_compatible("0.1.0")  # Older should fail
 
 
 def test_library_version_check(tmp_path):
     """Integration test for library version validation."""
-    # Mock library with old version
+    # TODO: Mock library with old version
     # Should raise CFFIModuleLoadFailed
     pass
