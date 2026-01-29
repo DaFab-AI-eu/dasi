@@ -147,6 +147,24 @@ Installation
 .. _`cffi`: https://pypi.org/project/cffi/
 
 
+Containerized Installation
+--------------------------
+
+A containerized installation using `Docker <https://www.docker.com/>`_ is also available.
+
+This will build and start a container with DASI and pydasi installed.
+
+```bash
+docker compose -f .devcontainer/docker-compose.yml up --build dasi-runtime
+```
+
+the following command will build and test dasi and pydasi using docker compose:
+
+```bash
+docker compose -f .devcontainer/docker-compose.yml up --build dasi-tester
+```
+
+
 
 Contributions
 =============
