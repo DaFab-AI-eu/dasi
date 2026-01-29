@@ -24,7 +24,7 @@ def test_version_format():
 
 def test_version_compatibility():
     """Test version comparison logic."""
-    assert version.is_compatible("0.2.7")  # Same or newer
+    assert version.is_compatible("0.2.7")  # Same
     assert version.is_compatible("0.3.0")  # Newer
     assert not version.is_compatible("0.1.0")  # Older should fail
 

@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .dasi import Dasi
-from .key import Key
-from .query import Query
-from .wipe import Wipe
-from .list import List
-from .retrieve import Retrieve
+from pydasi.dasi import Dasi
+from pydasi.key import Key
+from pydasi.query import Query
+from pydasi.wipe import Wipe
+from pydasi.list import List
+from pydasi.retrieve import Retrieve
 from backend import DASIException, check_type
 from utils import Config
-from utils.version import __version__ as version
+from utils.version import __version__ as Version
 
 
 __all__ = [
@@ -33,5 +33,5 @@ __all__ = [
     "DASIException",
     "check_type",
     "Config",
-    "version",
+    "Version",
 ]
