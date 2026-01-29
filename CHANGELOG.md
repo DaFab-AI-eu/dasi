@@ -1,3 +1,11 @@
+## 0.2.7 (2026-01-29)
+
+### Feat
+
+- **docker**: add containerized install to readme
+- **docker**: add basic runtime test
+- **pydasi**: read version from package
+
 ## 0.2.2 (2023-09-07)
 
 ### Feat
