@@ -16,7 +16,10 @@ sys.path.insert(0, str(Path('..', '..', 'pydasi', 'src').resolve()))
 project = 'DASI'
 copyright = '2024, European Centre for Medium-Range Weather Forecasts (ECMWF)'
 author = 'ECMWF'
-release = "0.2.6"
+
+# Read version from pydasi version
+from pydasi import Version
+release = Version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
