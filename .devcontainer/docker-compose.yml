@@ -34,6 +34,8 @@ services:
       context: ..
       dockerfile: Dockerfile
       target: dasi-tester
+      args:
+        - DASI_VERSION=0.2.8
     depends_on:
       minio:
         condition: service_healthy
@@ -49,11 +51,13 @@ services:
       context: ..
       dockerfile: Dockerfile
       target: dasi-runtime
+      args:
+        - DASI_VERSION=0.2.8
     command: >
       bash -lc "
         echo 'DASI Lib version:' $(dasi version) &&
         python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
-        python -c 'import pydasi; print(f\"pydasi version: {pydasi.__version__}\")'
+        python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
       "
 
   minio:
