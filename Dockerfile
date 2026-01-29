@@ -161,7 +161,7 @@ RUN set -ex; \
     rm -rf /var/cache/* /var/log/* /var/tmp/* && \
     ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
-    python -m ensurepip --upgrade && \
+    python -m ensurepip --upgrade  && \
     python -m pip install --upgrade pip
 
 # Copy DASI installation from builder
@@ -176,5 +176,4 @@ COPY --from=dasi-builder /tmp/pydasi-*.whl /tmp/
 RUN pip install --no-cache-dir /tmp/pydasi-*.whl && \
     rm -rf /tmp/pydasi-*.whl
 
-WORKDIR /app
-CMD ["/bin/bash"]
+WORKDIR /workspace
