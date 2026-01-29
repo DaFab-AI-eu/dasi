@@ -16,10 +16,15 @@ cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 
 find_package( ecbuild 3.12 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
 
-project( dasi-bundle VERSION 0.0.1 LANGUAGES C CXX )
+set( DASI_VERSION 0.2.7 )
+
+project( dasi-bundle VERSION ${DASI_VERSION} LANGUAGES C CXX )
 
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_CXX_EXTENSIONS OFF )
+# position-independent code (PIC) for all
+set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 # Load platform-specific configuration
 include( "./${CMAKE_SYSTEM_NAME}.cmake" )
@@ -31,6 +36,6 @@ ecbuild_bundle_initialize()
 ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH project/dafab UPDATE )
 ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab UPDATE )
-ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" BRANCH main          MANUAL )
+ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" TAG    v${DASI_VERSION} UPDATE )
 
 ecbuild_bundle_finalize()

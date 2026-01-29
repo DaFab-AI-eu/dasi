@@ -90,13 +90,8 @@ RUN set -ex; \
     llvm-toolset clang-tools-extra \
     # Editor and utilities
     vim-enhanced less sudo && \
-    dnf debuginfo-install -y gcc glibc libgcc libstdc++ && \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/*
-
-# Install MinIO Client
-RUN curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc && \
-    chmod +x /usr/local/bin/mc
 
 # Install Python development tools
 RUN pip install --no-cache-dir \
@@ -111,20 +106,33 @@ RUN groupadd --gid ${DEV_GID} ${DEV_USERNAME} && \
 
 USER ${DEV_USERNAME}
 
-WORKDIR /workspace/dasi/bundle
+WORKDIR /workspace
+
+COPY ./bundle/CMakeLists.txt .
+COPY ./bundle/Linux.cmake .
+
+RUN set -ex; \
+    sed -i 's/\(PROJECT.*dasi.*GIT.*\)UPDATE/\1MANUAL/' CMakeLists.txt && \
+    sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
+    sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake
 
 # =============================================================================
 # Builds DASI
 # =============================================================================
 FROM build-dependencies AS dasi-builder
 
-WORKDIR /src/dasi-bundle
+ARG DASI_VERSION=0.2.8
+
+RUN echo "Building DASI Version: ${DASI_VERSION}"
+
+WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
 COPY ./bundle/Linux.cmake .
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
+    sed -i "s/set(.DASI_VERSION.*)/set( DASI_VERSION ${DASI_VERSION} )/" CMakeLists.txt && \
     sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -138,12 +146,13 @@ RUN set -ex; \
 # =============================================================================
 FROM dasi-builder AS dasi-tester
 
-WORKDIR /src/dasi-bundle
+WORKDIR /workspace
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
     sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake && \
+    rm -rf /tmp/build/dasi-bundle && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
     cmake --build /tmp/build/dasi-bundle --target all pydasi_develop
 
@@ -155,6 +164,7 @@ FROM rockylinux/rockylinux:9.6-minimal AS dasi-runtime
 # Install only runtime dependencies
 RUN set -ex; \
     microdnf install -y \
+    libstdc++ \
     python3.11 \
     ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl && \
     microdnf clean all && \
@@ -170,9 +180,13 @@ COPY --from=dasi-builder /usr/local/lib64/libaws* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libs2n* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libaec* /usr/local/lib64/
 COPY --from=dasi-builder /usr/local/lib64/libsz* /usr/local/lib64/
+COPY --from=dasi-builder /opt/rh/gcc-toolset-14/root/usr/lib/gcc/x86_64-redhat-linux/14/libstdc++.so.6* /usr/local/lib64/
 
-# Install pydasi wheel
+RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/dasi-libs.conf && ldconfig
+
+# Install pydasi
 COPY --from=dasi-builder /tmp/pydasi-*.whl /tmp/
+
 RUN pip install --no-cache-dir /tmp/pydasi-*.whl && \
     rm -rf /tmp/pydasi-*.whl
 
