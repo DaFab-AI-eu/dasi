@@ -75,10 +75,6 @@ RUN set -ex; \
 # =============================================================================
 FROM build-dependencies AS dev-env
 
-ARG DEV_USERNAME=developer
-ARG DEV_UID=1000
-ARG DEV_GID=$DEV_UID
-
 # Configure shell environment for interactive use
 RUN echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
 
@@ -97,14 +93,6 @@ RUN set -ex; \
 RUN pip install --no-cache-dir \
     pytest pytest-env pycparser pyyaml packaging build \
     black isort flake8 mypy ipython debugpy
-
-# Create non-root user for development
-RUN groupadd --gid ${DEV_GID} ${DEV_USERNAME} && \
-    useradd --uid ${DEV_UID} --gid ${DEV_GID} -m ${DEV_USERNAME} && \
-    echo "${DEV_USERNAME} ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/${DEV_USERNAME} && \
-    chmod 0440 /etc/sudoers.d/${DEV_USERNAME}
-
-USER ${DEV_USERNAME}
 
 WORKDIR /workspace
 

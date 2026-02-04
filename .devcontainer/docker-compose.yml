@@ -1,4 +1,4 @@
-name: dasi-dev
+name: dasi
 
 services:
 
@@ -29,7 +29,7 @@ services:
     stdin_open: true
     tty: true
 
-  dasi-tester:
+  test:
     build:
       context: ..
       dockerfile: Dockerfile
@@ -46,7 +46,7 @@ services:
         cmake --build /tmp/build/dasi-bundle --target pydasi_test
       "
 
-  dasi-runtime:
+  runtime:
     build:
       context: ..
       dockerfile: Dockerfile
