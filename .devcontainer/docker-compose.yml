@@ -41,7 +41,7 @@ services:
         condition: service_healthy
     command: >
       bash -lc "
-        set -ex &&
+        set -ex;
         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
         cmake --build /tmp/build/dasi-bundle --target pydasi_test
       "

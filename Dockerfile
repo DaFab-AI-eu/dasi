@@ -87,10 +87,9 @@ RUN set -ex; \
     # Editor and utilities
     vim-enhanced less sudo && \
     dnf clean all && \
-    rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/*
-
-# Install Python development tools
-RUN pip install --no-cache-dir \
+    rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
+    # Install Python development tools
+    pip install -U --no-cache-dir \
     pytest pytest-env pycparser pyyaml packaging build \
     black isort flake8 mypy ipython debugpy
 
