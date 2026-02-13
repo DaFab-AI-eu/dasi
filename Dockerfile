@@ -123,7 +123,7 @@ RUN set -ex; \
     sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr/local/dasi && \
+    -DCMAKE_INSTALL_PREFIX=/usr/local && \
     cmake --build /tmp/build/dasi-bundle --target all install pydasi_package && \
     cp ./dasi/pydasi/dist/pydasi-*.whl /tmp/ && \
     rm -rf /tmp/build/dasi-bundle
@@ -162,13 +162,10 @@ RUN set -ex; \
     python -m pip install --upgrade pip
 
 # Copy DASI installation from builder
-COPY --from=dasi-builder /usr/local/dasi /usr/local/
-COPY --from=dasi-builder /usr/local/lib64/libaws* /usr/local/lib64/
-COPY --from=dasi-builder /usr/local/lib64/libs2n* /usr/local/lib64/
-COPY --from=dasi-builder /usr/local/lib64/libaec* /usr/local/lib64/
-COPY --from=dasi-builder /usr/local/lib64/libsz* /usr/local/lib64/
+COPY --from=dasi-builder /usr/local /usr/local/
 COPY --from=dasi-builder /opt/rh/gcc-toolset-14/root/usr/lib/gcc/x86_64-redhat-linux/14/libstdc++.so.6* /usr/local/lib64/
 
+# Update the dynamic linker cache
 RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/dasi-libs.conf && ldconfig
 
 # Install pydasi
