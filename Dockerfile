@@ -9,11 +9,12 @@ RUN set -ex; \
     dnf config-manager --set-enabled crb && /usr/bin/crb enable && \
     dnf config-manager --set-enabled devel && \
     dnf install -y \
+    tar redhat-rpm-config ca-certificates \
     # Build tools
     git cmake ninja-build diffutils which unzip \
     # Compilers
     gcc gcc-c++ gcc-fortran \
-    binutils glibc-devel bison flex \
+    binutils glibc-devel bison flex findutils libffi-devel \
     # GCC toolset 14
     gcc-toolset-14 gcc-toolset-14-binutils gcc-toolset-14-libstdc++-devel gcc-toolset-14-libasan-devel \
     # Development libraries
@@ -25,8 +26,10 @@ RUN set -ex; \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
     # Python symlink and tools
-    ln -s /usr/bin/python3.11 /usr/bin/python && \
-    python -m pip install -q --upgrade pip setuptools wheel gcovr
+    ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python && \
+    python -m pip install -q --upgrade pip setuptools wheel gcovr && \
+    python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
 
 # Install ecbuild
 ADD --keep-git-dir=true https://github.com/ecmwf/ecbuild.git#3.12.0 /tmp/ecbuild
@@ -69,6 +72,11 @@ RUN set -ex; \
     unzip /tmp/awscliv2.zip -d /tmp && \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
+
+# Inject custom S3/MinIO protocol into rucio-clients
+COPY .devcontainer/rucio/s3boto3.py /usr/local/lib/python3.11/site-packages/rucio/rse/protocols/s3boto3.py
+
+RUN mkdir -p /root/.rucio && chmod 700 /root/.rucio
 
 # =============================================================================
 # Development environment for devcontainer
@@ -116,6 +124,8 @@ WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
 COPY ./bundle/Linux.cmake .
+# Inject custom S3/MinIO protocol into rucio-clients
+COPY .devcontainer/rucio/s3boto3.py /usr/local/lib/python3.11/site-packages/rucio/rse/protocols/s3boto3.py
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
@@ -153,13 +163,14 @@ RUN set -ex; \
     microdnf install -y \
     libstdc++ \
     python3.11 \
-    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl && \
+    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl ca-certificates && \
     microdnf clean all && \
     rm -rf /var/cache/* /var/log/* /var/tmp/* && \
     ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     python -m ensurepip --upgrade  && \
-    python -m pip install --upgrade pip
+    python -m pip install --upgrade pip && \
+    python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
 
 # Copy DASI installation from builder
 COPY --from=dasi-builder /usr/local /usr/local/

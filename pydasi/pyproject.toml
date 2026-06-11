@@ -29,6 +29,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+rucio = [
+    "rucio-clients>=36.0",
+    "boto3>=1.26",
+]
 tests = [
     "pytest>=6.0",
     "pytest-env",
@@ -40,7 +44,7 @@ dev = [
     "mypy>=0.990",
     "ruff>=0.1.0",
 ]
-all = ["pydasi[tests,dev]"]
+all = ["pydasi[rucio,tests,dev]"]
 
 [project.urls]
 Homepage = "https://github.com/ecmwf-projects/dasi"

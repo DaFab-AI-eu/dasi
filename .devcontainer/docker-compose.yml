@@ -2,18 +2,148 @@ name: dasi
 
 services:
 
-  devcontainer:
+  # --- 1. Database Backend ---
+  rucio-db:
+      image: postgres:14-alpine
+      environment:
+          POSTGRES_DB: ${POSTGRES_DB}
+          POSTGRES_USER: ${POSTGRES_USER}
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ports:
+          - "5432:5432"
+      volumes:
+          - ruciodb:/var/lib/postgresql/data
+      healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+          interval: 5s
+          timeout: 5s
+          retries: 5
+
+  # --- 2. Rucio Database Initializer ---
+  # This service uses the official rucio-init image and runs only once.
+  rucio-init:
+      image: rucio/rucio-init:release-40.2.0
+      entrypoint: ["/bin/bash"]
+      restart: "no"
+      depends_on:
+          rucio-db:
+              condition: service_healthy
+      command: ["/usr/local/bin/rucio-init-wrapper.sh"]
+      environment:
+          - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
+          - RUCIO_BOOTSTRAP=True
+          - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+          - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+          - RUCIO_USERNAME=${RUCIO_USERNAME}
+          - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+          - RUCIO_HOST=${RUCIO_HOST}
+      volumes:
+          - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
+          - ./rucio-init-wrapper.sh:/usr/local/bin/rucio-init-wrapper.sh:ro
+          - rucioinitstate:/var/lib/rucio-init
+
+  # --- 3. The Rucio Server ---
+  rucio-server:
+      image: rucio/rucio-server:release-40.2.0
+      ports:
+          - "80:80"
+          - "443:443"
+      depends_on:
+          rucio-db:
+              condition: service_healthy
+          rucio-init:
+              condition: service_completed_successfully
+
+      healthcheck:
+          test: ["CMD-SHELL", "curl -sf http://localhost:80/ping || exit 1"]
+          interval: 10s
+          timeout: 5s
+          retries: 12
+
+      environment:
+          # Tell the server how to reach the DB
+          - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
+          # Basic configuration variables
+          - RUCIO_ENABLE_SSL=${RUCIO_ENABLE_SSL}
+          - RUCIO_SERVER_TYPE=${RUCIO_SERVER_TYPE}
+          - RUCIO_LOG_LEVEL=${RUCIO_LOG_LEVEL}
+          # Allow the server to know its external address if needed
+          - RUCIO_HOSTNAME=${RUCIO_HOSTNAME}
+          # Auth configuration for admin operations
+          - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+          - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+          - RUCIO_USERNAME=${RUCIO_USERNAME}
+          - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+          # MinIO S3 credentials for server-side PFN construction
+          - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+          - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+          - AWS_DEFAULT_REGION=${MINIO_REGION}
+          - MINIO_HOST=http://minio:9000
+          - MINIO_BUCKET=${MINIO_BUCKET}
+          - MINIO_REGION=${MINIO_REGION}
+      volumes:
+          - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
+          - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
+          - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
+          - ./rucio/s3boto3.py:/usr/local/lib/python3.9/site-packages/rucio/rse/protocols/s3boto3.py:ro
+
+  # --- 5. MinIO S3-compatible object storage ---
+  minio:
+      image: minio/minio:latest
+      command: server /data --console-address ":9001"
+      environment:
+          MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+          MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+          MINIO_REGION: ${MINIO_REGION}
+      ports:
+          - "9000:9000"   # S3 API
+          - "9001:9001"   # web console  →  http://localhost:9001
+      volumes:
+          - minio-data:/data
+      healthcheck:
+          test: ["CMD", "mc", "ready", "local"]
+          interval: 5s
+          timeout: 5s
+          retries: 5
+
+  dasi-dev:
     build:
       context: ..
       dockerfile: Dockerfile
       target: dev-env
 
     depends_on:
-      minio:
-        condition: service_healthy
+        rucio-server:
+            condition: service_healthy
+        minio:
+            condition: service_healthy
+
+    env_file: .env
+
+    environment:
+        - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
+        - RUCIO_CLIENT_MODE=True
+        - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+        - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+        - RUCIO_USERNAME=${RUCIO_USERNAME}
+        - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+        - RUCIO_HOST=${RUCIO_HOST}
+        # MinIO S3 credentials (match MINIO_ROOT_USER/MINIO_ROOT_PASSWORD)
+        - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+        - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+        - AWS_DEFAULT_REGION=${MINIO_REGION}
 
     volumes:
+      - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
+      - ~/.cmake:/workspace/.cmake:ro
       - ..:/workspace/dasi:cached
+      # Canonical path used by rucio library get_config_dirs()
+      - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
+      # Rucio catalogue bootstrap script (run via dasi-dev postStartCommand)
+      - ./rucio-setup.sh:/usr/local/bin/rucio-setup.sh:ro
+      # Optional: mount host grid certs and rucio config directory
+      - ${GLOBUS_DIR:-./rucio/.globus}:/etc/grid-security:ro
+      - rucio-storage:/rucio-storage
 
     # use a ptrace-based debugger C++
     cap_add:
@@ -29,52 +159,43 @@ services:
     stdin_open: true
     tty: true
 
-  test:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: dasi-tester
-      args:
-        - DASI_VERSION=0.2.8
-    depends_on:
-      minio:
-        condition: service_healthy
-    command: >
-      bash -lc "
-        set -ex;
-        ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
-        cmake --build /tmp/build/dasi-bundle --target pydasi_test
-      "
+#   test:
+#     build:
+#       context: ..
+#       dockerfile: Dockerfile
+#       target: dasi-tester
+#       args:
+#         - DASI_VERSION=0.2.8
+#     depends_on:
+#       rucio-server:
+#         condition: service_healthy
+#       minio:
+#         condition: service_healthy
+#     env_file: .env
+#     command: >
+#       bash -lc "
+#         set -ex;
+#         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
+#         cmake --build /tmp/build/dasi-bundle --target pydasi_test
+#       "
+#
+#   runtime:
+#     build:
+#       context: ..
+#       dockerfile: Dockerfile
+#       target: dasi-runtime
+#       args:
+#         - DASI_VERSION=0.2.8
+#     command: >
+#       bash -lc "
+#         echo 'DASI Lib version:' $(dasi version) &&
+#         python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
+#         python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
+#       "
 
-  runtime:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: dasi-runtime
-      args:
-        - DASI_VERSION=0.2.8
-    command: >
-      bash -lc "
-        echo 'DASI Lib version:' $(dasi version) &&
-        python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
-        python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
-      "
 
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9090:9090"
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio1234
-    volumes:
-      - ./minio/data:/data
-      - ./minio/certs:/root/.minio/certs
-    command: minio server /data --console-address ":9090"
-    healthcheck:
-      test: ["CMD", "curl", "-fk", "https://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+volumes:
+    ruciodb:
+    rucioinitstate:
+    rucio-storage:
+    minio-data:

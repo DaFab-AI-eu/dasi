@@ -1,0 +1,25 @@
+; Example Rucio client configuration
+; Copy this to ~/.rucio/rucio.cfg or mount into the container at /root/.rucio/rucio.cfg
+
+[client]
+; Default account used by the client
+account = example_account
+
+; Rucio server base URL
+rucio_host = https://rucio.example.org
+
+; Authentication server (if separate)
+auth_host = https://rucio-auth.example.org
+
+; Authentication type: x509 or userpass (or oidc depending on your deployment)
+auth_type = x509
+
+; X.509 settings (paths inside the container)
+cert = /etc/grid-security/hostcert.pem
+key = /etc/grid-security/hostkey.pem
+ca_cert = /etc/grid-security/cacert.pem
+
+; Uncomment and set for username/password authentication
+;auth_type = userpass
+;username = myuser
+;password = mypassword

@@ -1,14 +1,9 @@
 {
-    "name": "DASI Development",
+    "name": "dasi",
     "dockerComposeFile": "docker-compose.yml",
-    "service": "devcontainer",
+    "service": "dasi-dev",
     "workspaceFolder": "/workspace",
-    // "mounts": [
-    //     "source=..,target=/workspace/dasi,type=bind,consistency=cached"
-    // ],
-    // "containerUser": "developer",
-    // "remoteUser": "developer",
-    // "updateRemoteUserUID": true,
+    "postStartCommand": "bash /usr/local/bin/rucio-setup.sh",
     "customizations": {
         "vscode": {
             "settings": {

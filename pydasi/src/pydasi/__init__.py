@@ -18,6 +18,7 @@ from pydasi.query import Query
 from pydasi.wipe import Wipe
 from pydasi.list import List
 from pydasi.retrieve import Retrieve
+from pydasi.rucio import Rucio
 from backend import DASIException, check_type
 from utils import Config
 from utils.version import __version__ as Version
@@ -30,6 +31,7 @@ __all__ = [
     "Wipe",
     "List",
     "Retrieve",
+    "Rucio",
     "DASIException",
     "check_type",
     "Config",

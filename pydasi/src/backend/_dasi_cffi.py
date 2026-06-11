@@ -145,7 +145,7 @@ class PatchedLib:
 
         self.__loaded = False
         self._log = logging.getLogger(__package__)
-        self._log.info("version: %s", version.__version__)
+        self._log.debug("version: %s", version.__version__)
 
     def load(self):
         if self.__loaded:
