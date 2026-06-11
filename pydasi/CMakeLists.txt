@@ -20,8 +20,8 @@ if( NOT DEFINED PROJECT_NAME )
     message( FATAL_ERROR "This CMakeLists.txt file should not be included directly!" )
 endif()
 
-configure_file( src/utils/version.py.in
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/version.py @ONLY )
+configure_file( src/pydasi/utils/version.py.in
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/pydasi/utils/version.py @ONLY )
 
 find_package( Python3 REQUIRED COMPONENTS Interpreter )
 
@@ -53,7 +53,7 @@ endif( )
 # generate the cffi header from the dasi_c.h
 
 set( _c_header ${PROJECT_SOURCE_DIR}/include/dasi/api/dasi_c.h )
-set( _cffi_header ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/include/dasi_c_cffi.h )
+set( _cffi_header ${CMAKE_CURRENT_SOURCE_DIR}/src/pydasi/backend/include/dasi_c_cffi.h )
 
 add_custom_command(
     OUTPUT
@@ -73,7 +73,7 @@ add_custom_command(
 
 # copy libdasi.so to pydasi backend
 
-set( _backend_lib ${CMAKE_CURRENT_SOURCE_DIR}/src/backend/libs/${CMAKE_SYSTEM_NAME} )
+set( _backend_lib ${CMAKE_CURRENT_SOURCE_DIR}/src/pydasi/backend/libs/${CMAKE_SYSTEM_NAME} )
 
 add_custom_target( pydasi_backend
     DEPENDS

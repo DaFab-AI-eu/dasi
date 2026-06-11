@@ -14,8 +14,11 @@
 
 from __future__ import annotations
 
-import logging
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, Sequence
+from logging import getLogger as _getLogger
+from rucio.client import Client
+
+logger = _getLogger(__name__)
 
 
 class RucioListItem:
@@ -29,18 +32,14 @@ class RucioListItem:
         self,
         scope: str,
         name: str,
-        metadata: Dict[str, Any],
+        metadata: dict[str, Any],
     ) -> None:
         self._scope = scope
         self._name = name
         self._metadata = metadata
 
-    # ------------------------------------------------------------------
-    # Properties that mirror the pydasi.List interface
-    # ------------------------------------------------------------------
-
     @property
-    def key(self) -> Dict[str, Any]:
+    def key(self) -> dict[str, Any]:
         return self._metadata
 
     @property
@@ -86,31 +85,22 @@ class RucioList:
     Parameters
     ----------
     client:
-        An authenticated ``rucio.client.Client`` instance.
+        An authenticated rucio client instance.
     query:
-        Dict of key→value (or key→[values]) pairs used as Rucio DID metadata filters.
+        Sequence of filter dicts used as Rucio DID metadata filters.
     scope:
         Fallback scope when *query* contains no ``"scope"`` key.
     """
 
     def __init__(
         self,
-        client: Any,
-        query: Dict[str, Any],
+        client: Client,
         scope: str,
+        query: Sequence[dict[str, Any]],
     ) -> None:
-        self._log = logging.getLogger(__name__)
         self._client = client
         self._scope = scope
-
-        filters = dict(query)
-
-        self._filters: Dict[str, Any] = {}
-        for k, v in filters.items():
-            if isinstance(v, (list, tuple)) and len(v) == 1:
-                self._filters[k] = v[0]
-            else:
-                self._filters[k] = v
+        self._filters: Sequence[dict[str, Any]] = query
 
         self._iter: Optional[Iterator[Any]] = None
         self._current: Optional[RucioListItem] = None
@@ -120,10 +110,6 @@ class RucioList:
 
     def __repr__(self) -> str:
         return self.__str__()
-
-    # ------------------------------------------------------------------
-    # Iterator protocol
-    # ------------------------------------------------------------------
 
     def __iter__(self) -> RucioList:
         self._iter = self._client.list_dids(
@@ -143,11 +129,11 @@ class RucioList:
         scope = entry.get("scope", self._scope)
         name = entry.get("name", entry.get("did", ""))
 
-        metadata: Dict[str, Any] = {}
+        metadata: dict[str, Any] = {}
         try:
-            metadata = self._client.get_metadata(scope=scope, name=name) or {}
-        except Exception as exc:  # noqa: BLE001
-            self._log.debug("get_metadata failed for %s:%s — %s", scope, name, exc)
+            metadata = self._client.get_metadata(scope=scope, name=name)
+        except Exception as exc:
+            logger.warning("get_metadata failed for %s:%s — %s", scope, name, exc)
 
         item = RucioListItem(
             scope=scope,
@@ -157,12 +143,8 @@ class RucioList:
         self._current = item
         return item
 
-    # ------------------------------------------------------------------
-    # Convenience properties (reflect the *last* yielded item)
-    # ------------------------------------------------------------------
-
     @property
-    def key(self) -> Dict[str, Any]:
+    def key(self) -> dict[str, Any]:
         return self._current.key if self._current else {}
 
     @property

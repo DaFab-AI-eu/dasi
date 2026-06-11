@@ -62,23 +62,24 @@ fi
 
 echo "rucio-setup: server is up."
 
-# Use catalogue state as the idempotency check — no marker file needed.
-if rucio rse list 2>/dev/null | grep -q "^${RSE_NAME}$"; then
-    echo "rucio-setup: RSE ${RSE_NAME} already exists; skipping."
-    exit 0
-fi
-
 # Suppress "already exists" errors so re-runs are safe.
 _rucio() { rucio "$@" 2>&1 | grep -v "already exists\|Duplicate\|exists" || true; }
 
-echo "rucio-setup: creating scope ${SCOPE}..."
-_rucio scope add --account "$ACCOUNT" "$SCOPE"
+if rucio rse list 2>/dev/null | grep -q "^${RSE_NAME}$"; then
+    echo "rucio-setup: RSE ${RSE_NAME} already exists; enforcing protocol configuration."
+else
+    echo "rucio-setup: creating scope ${SCOPE}..."
+    _rucio scope add --account "$ACCOUNT" "$SCOPE"
 
-echo "rucio-setup: creating RSE ${RSE_NAME}..."
-_rucio rse add "$RSE_NAME"
+    echo "rucio-setup: creating RSE ${RSE_NAME}..."
+    _rucio rse add "$RSE_NAME"
+fi
 
 echo "rucio-setup: setting RSE attribute type=DISK..."
 _rucio rse attribute add "$RSE_NAME" --key type --value DISK
+
+echo "rucio-setup: removing stale S3 protocol definitions for ${RSE_NAME}..."
+rucio rse protocol remove "$RSE_NAME" --scheme s3 --hostname "$MINIO_HOSTNAME" --port "$MINIO_PORT" >/dev/null 2>&1 || true
 
 echo "rucio-setup: registering S3 protocol (MinIO ${MINIO_HOSTNAME}:${MINIO_PORT}, bucket=${BUCKET})..."
 _rucio rse protocol add "$RSE_NAME" \
@@ -86,11 +87,38 @@ _rucio rse protocol add "$RSE_NAME" \
     --port "$MINIO_PORT" \
     --scheme s3 \
     --prefix "/${BUCKET}/" \
-    --impl rucio.rse.protocols.s3boto3.Default \
+    --impl rucio_s3boto3.Default \
     --domain-json '{"lan":{"read":1,"write":1,"delete":1},"wan":{"read":1,"write":1,"delete":1,"third_party_copy_read":1,"third_party_copy_write":1}}' \
     --extended-attributes-json "{\"s3_access_key\":\"${S3_ACCESS_KEY}\",\"s3_secret_key\":\"${S3_SECRET_KEY}\",\"s3_endpoint_url\":\"${MINIO_HOST:-http://minio:9000}\"}"
 
 echo "rucio-setup: granting quota (10GB) for ${ACCOUNT} on ${RSE_NAME}..."
 _rucio account limit add "$ACCOUNT" --rse "$RSE_NAME" --bytes 10GB --locality local
+
+echo "rucio-setup: fail-fast PFN check via server lfns2pfns..."
+python - <<PY
+from rucio.client import Client
+
+rse = "${RSE_NAME}"
+scope = "${SCOPE}"
+probe_name = "rucio_pfn_probe.dat"
+
+client = Client()
+try:
+    resolved = client.lfns2pfns(rse, [f"{scope}:{probe_name}"])
+except Exception as exc:
+    raise SystemExit(
+        "rucio-setup: PFN resolution check failed via server API. "
+        "Ensure protocol impl is importable in rucio-server (rucio_s3boto3.Default). "
+        f"Original error: {exc}"
+    )
+
+if not resolved:
+    raise SystemExit(
+        "rucio-setup: PFN resolution returned empty result. "
+        "Server-side protocol configuration is incomplete."
+    )
+
+print(f"rucio-setup: PFN resolution OK for {scope}:{probe_name}")
+PY
 
 echo "rucio-setup: done."

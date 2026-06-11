@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from backend import FFI, ffi, lib, ffi_decode, ffi_encode, new_key, check_type
+from pydasi.backend import FFI, ffi, lib, ffi_decode, ffi_encode, new_key, check_type
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class Key:
@@ -21,13 +24,10 @@ class Key:
     """
 
     def __init__(self, key=None):
-        import logging
 
         lib.load()
 
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("init key: %s", key)
+        logger.debug("init key: %s", key)
 
         if isinstance(key, Key):
             self._cdata = key._cdata
@@ -44,6 +44,7 @@ class Key:
         return self._cdata
 
     def __setitem__(self, keyword, value):
+        logger.debug("Setting key: %s, value: %s", keyword, value)
         lib.dasi_key_set(self._cdata, ffi_encode(keyword), ffi_encode(value))
 
     def __getitem__(self, keyword):
@@ -52,6 +53,7 @@ class Key:
         return ffi_decode(value[0])
 
     def __delitem__(self, keyword):
+        logger.debug("Deleting key: %s", keyword)
         lib.dasi_key_erase(self._cdata, ffi_encode(keyword))
 
     def __len__(self) -> int:
@@ -68,9 +70,7 @@ class Key:
         out = ""
         for i in range(len(self)):
             lib.dasi_key_get_index(self._cdata, i, keyword, value)
-            out += "<{}:{}>".format(
-                ffi_decode(keyword[0]), ffi_decode(value[0])
-            )
+            out += "<{}:{}>".format(ffi_decode(keyword[0]), ffi_decode(value[0]))
         return out
 
     def __ne__(self, other) -> bool:

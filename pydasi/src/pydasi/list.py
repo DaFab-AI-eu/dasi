@@ -12,19 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from backend import FFI, ffi, lib, ffi_decode, new_list
-
+from pydasi.backend import FFI, ffi, lib, ffi_decode, new_list
 from .key import Key
 from .query import Query
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class List:
     def __init__(self, dasi: FFI.CData, query):
-        import logging
-
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("Initialize List...")
+        logger.debug("Initialize List...")
 
         self.__key = Key()
         self.__uri = ffi.new("const char **", ffi.NULL)
@@ -48,7 +46,7 @@ class List:
         return self
 
     def __len__(self) -> int:
-        self._log.debug("not implemented in Dasi C lib!")
+        logger.debug("not implemented in Dasi C lib!")
         return 0
 
     def __read(self):

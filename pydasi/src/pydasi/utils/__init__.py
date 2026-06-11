@@ -13,10 +13,9 @@
 # limitations under the License.
 
 
-from utils.config import Config
-from utils.find_lib import FindLib
-from utils.version import __version__
-
+from pydasi.utils.config import Config
+from pydasi.utils.find_lib import FindLib
+from pydasi.utils.version import __version__
 
 __all__ = [
     "FindLib",

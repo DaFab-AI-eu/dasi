@@ -73,9 +73,6 @@ RUN set -ex; \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
 
-# Inject custom S3/MinIO protocol into rucio-clients
-COPY .devcontainer/rucio/s3boto3.py /usr/local/lib/python3.11/site-packages/rucio/rse/protocols/s3boto3.py
-
 RUN mkdir -p /root/.rucio && chmod 700 /root/.rucio
 
 # =============================================================================
@@ -124,8 +121,6 @@ WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
 COPY ./bundle/Linux.cmake .
-# Inject custom S3/MinIO protocol into rucio-clients
-COPY .devcontainer/rucio/s3boto3.py /usr/local/lib/python3.11/site-packages/rucio/rse/protocols/s3boto3.py
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \

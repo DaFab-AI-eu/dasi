@@ -12,39 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
-import logging
 import os
 import tempfile
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
+from logging import getLogger as _getLogger
+
+from rucio.client import Client
+from rucio.client.downloadclient import DownloadClient
+from rucio.common.exception import NoFilesDownloaded
+
+logger = _getLogger(__name__)
 
 
 class RucioRetrieveItem:
-    """A single data item returned by :class:`RucioRetrieve` iteration."""
 
-    __slots__ = ("_scope", "_name", "_metadata", "_data", "_created_at")
+    __slots__ = ("_scope", "_name", "_data", "_metadata")
 
     def __init__(
         self,
         scope: str,
         name: str,
-        metadata: Dict[str, Any],
         data: bytes,
-        created_at: Any,
+        metadata: dict[str, Any],
     ) -> None:
         self._scope = scope
         self._name = name
-        self._metadata = metadata
         self._data = data
-        self._created_at = created_at
+        self._metadata = metadata
 
     # ------------------------------------------------------------------
     # Properties that mirror the pydasi.Retrieve interface
     # ------------------------------------------------------------------
 
     @property
-    def key(self) -> Dict[str, Any]:
+    def key(self) -> dict[str, Any]:
         """Metadata key-value pairs attached to the DID."""
         return self._metadata
 
@@ -59,7 +60,7 @@ class RucioRetrieveItem:
 
     @property
     def timestamp(self) -> Any:
-        return self._created_at
+        return self._metadata.get("created_at", None)
 
     @property
     def offset(self) -> int:
@@ -78,134 +79,100 @@ class RucioRetrieveItem:
         return f"{self._scope}:{self._name}"
 
     def __str__(self) -> str:
-        return f"RucioRetrieveItem(uri={self.uri!r}, bytes={self.length}, " f"metadata={self._metadata})"
+        return f"RucioRetrieveItem(uri={self.uri!r}, length={self.length}, " f"metadata={self._metadata})"
 
     def __repr__(self) -> str:
         return self.__str__()
 
 
 class RucioRetrieve:
-    """Download files matching a metadata query and expose their content.
-
-    Parameters
-    ----------
-    client:
-        An authenticated ``rucio.client.Client`` instance.
-    download_client:
-        An authenticated ``rucio.client.downloadclient.DownloadClient``
-        instance used for the actual data transfer.
-    query:
-        Dict of key→value (or key→[values]) pairs used as Rucio DID metadata
-        filters.  A ``"scope"`` key selects the Rucio scope; all other keys
-        become ``filters`` passed to ``list_dids``.
-    scope:
-        Fallback scope when *query* contains no ``"scope"`` key.
-    rse:
-        Restrict downloads to this RSE (optional).
-    protocol:
-        Preferred protocol (e.g. ``"s3"``).  ``None`` lets Rucio choose.
-    """
+    """Download files matching a metadata query and expose their content."""
 
     def __init__(
         self,
-        client: Any,
-        download_client: Any,
-        rse: str,
+        client: Client,
+        download_client: DownloadClient,
         scope: str,
+        rse: str,
         protocol: str,
-        query: Dict[str, Any],
+        query: Sequence[dict[str, Any]],
     ) -> None:
-        self._log = logging.getLogger(__name__)
         self._client = client
         self._dl_client = download_client
         self._rse = rse
         self._scope = scope
         self._protocol = protocol
+        self._filters: Sequence[dict[str, Any]] = query
 
-        filters = dict(query)
-
-        self._filters: Dict[str, Any] = {}
-        for k, v in filters.items():
-            if isinstance(v, (list, tuple)) and len(v) == 1:
-                self._filters[k] = v[0]
-            else:
-                self._filters[k] = v
-
-        self._did_list: list[Dict[str, Any]] = []
+        self._did_list: list[dict[str, Any]] = []
         self._index: int = 0
         self._current: Optional[RucioRetrieveItem] = None
 
-    # ------------------------------------------------------------------
-    # Iterator protocol
-    # ------------------------------------------------------------------
-
     def __iter__(self) -> "RucioRetrieve":
-        self._log.debug(
-            "RucioRetrieve: listing scope=%r filters=%r rse=%r",
-            self._scope,
-            self._filters,
-            self._rse,
-        )
+        logger.debug("RucioRetrieve: scope=%r filters=%r rse=%r", self._scope, self._filters, self._rse)
         self._did_list = list(
-            self._client.list_dids(
-                scope=self._scope,
-                filters=self._filters,
-                did_type="file",
-                long=True,
-            )
+            self._client.list_dids(scope=self._scope, filters=self._filters, did_type="file", long=True)
         )
         self._index = 0
         return self
 
     def __next__(self) -> RucioRetrieveItem:
-        if self._index >= len(self._did_list):
-            raise StopIteration
+        while self._index < len(self._did_list):
+            entry = self._did_list[self._index]
+            self._index += 1
 
-        entry = self._did_list[self._index]
-        self._index += 1
+            name = entry.get("name", entry.get("did", ""))
 
-        name = entry.get("name", entry.get("did", ""))
-        created_at = entry.get("created_at")
+            try:
+                data = self._download(name)
+            except (NoFilesDownloaded, FileNotFoundError) as exc:
+                logger.warning("Skipping %s:%s because it is not downloadable (%s)", self._scope, name, exc)
+                continue
 
-        # Fetch DID metadata
-        metadata: Dict[str, Any] = {}
-        try:
-            metadata = self._client.get_metadata(scope=self._scope, name=name) or {}
-        except Exception as exc:  # noqa: BLE001
-            self._log.debug("get_metadata failed for %s:%s — %s", self._scope, name, exc)
+            metadata: dict[str, Any] = {}
+            try:
+                metadata = self._client.get_metadata(scope=self._scope, name=name)
+            except Exception as exc:
+                logger.warning("get_metadata failed for %s:%s — %s", self._scope, name, exc)
 
-        # Download the file into a temporary directory and read it back
-        data = self._download_did(name)
+            item = RucioRetrieveItem(scope=self._scope, name=name, data=data, metadata=metadata)
+            self._current = item
+            return item
 
-        item = RucioRetrieveItem(
-            scope=self._scope,
-            name=name,
-            metadata=metadata,
-            data=data,
-            created_at=created_at,
-        )
-        self._current = item
-        return item
+        raise StopIteration
 
     def __len__(self) -> int:
         return len(self._did_list)
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    @property
+    def key(self) -> dict[str, Any]:
+        return self._current.key if self._current else {}
 
-    def _download_did(self, name: str) -> bytes:
-        """Download a single file DID and return its content as bytes."""
+    @property
+    def data(self) -> bytes:
+        return self._current.data if self._current else b""
+
+    @property
+    def timestamp(self) -> Any:
+        return self._current.timestamp if self._current else None
+
+    @property
+    def offset(self) -> int:
+        return 0
+
+    @property
+    def length(self) -> int:
+        return self._current.length if self._current else 0
+
+    def _download(self, name: str) -> bytes:
         with tempfile.TemporaryDirectory() as tmpdir:
-            item_spec: Dict[str, Any] = {
+            item_spec: dict[str, Any] = {
                 "did": f"{self._scope}:{name}",
                 "base_dir": tmpdir,
                 "no_subdir": True,
+                "rse": self._rse,
+                "force_scheme": self._protocol,
             }
-            if self._rse:
-                item_spec["rse"] = self._rse
-            if self._protocol:
-                item_spec["force_scheme"] = self._protocol
 
             results = self._dl_client.download_dids([item_spec])
 
@@ -234,27 +201,3 @@ class RucioRetrieve:
 
             with open(dest, "rb") as fh:
                 return fh.read()
-
-    # ------------------------------------------------------------------
-    # Convenience properties (reflect the *last* yielded item)
-    # ------------------------------------------------------------------
-
-    @property
-    def key(self) -> Dict[str, Any]:
-        return self._current.key if self._current else {}
-
-    @property
-    def data(self) -> bytes:
-        return self._current.data if self._current else b""
-
-    @property
-    def timestamp(self) -> Any:
-        return self._current.timestamp if self._current else None
-
-    @property
-    def offset(self) -> int:
-        return 0
-
-    @property
-    def length(self) -> int:
-        return self._current.length if self._current else 0

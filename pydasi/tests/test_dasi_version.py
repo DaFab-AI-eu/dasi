@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-from utils import version
+from pydasi.utils import version
 
 
 def test_version_format():
     """Ensure version follows PEP 440."""
     from packaging.version import Version
+
     assert Version(version.__version__)  # Should not raise
 
 

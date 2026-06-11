@@ -81,11 +81,12 @@ services:
           - MINIO_HOST=http://minio:9000
           - MINIO_BUCKET=${MINIO_BUCKET}
           - MINIO_REGION=${MINIO_REGION}
+          - PYTHONPATH=/workspace/dasi/pydasi/src
       volumes:
+          - ../pydasi/src:/workspace/dasi/pydasi/src:ro
           - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
           - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
           - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
-          - ./rucio/s3boto3.py:/usr/local/lib/python3.9/site-packages/rucio/rse/protocols/s3boto3.py:ro
 
   # --- 5. MinIO S3-compatible object storage ---
   minio:

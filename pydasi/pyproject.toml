@@ -26,13 +26,11 @@ dependencies = [
     "cffi>=1.15.0",
     "pyyaml>=6.0",
     "packaging>=22.0",
+  "rucio-clients==40.2.0",
+    "boto3>=1.26",
 ]
 
 [project.optional-dependencies]
-rucio = [
-    "rucio-clients>=36.0",
-    "boto3>=1.26",
-]
 tests = [
     "pytest>=6.0",
     "pytest-env",
@@ -44,7 +42,7 @@ dev = [
     "mypy>=0.990",
     "ruff>=0.1.0",
 ]
-all = ["pydasi[rucio,tests,dev]"]
+all = ["pydasi[tests,dev]"]
 
 [project.urls]
 Homepage = "https://github.com/ecmwf-projects/dasi"
@@ -57,12 +55,17 @@ Changelog = "https://github.com/ecmwf-projects/dasi/blob/master/CHANGELOG.md"
 requires = ["setuptools >= 45.0", "cffi>=1.1.1"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+# Standalone, top-level RSE protocol module (intentionally NOT under the
+# ``pydasi`` package) so rucio-server can import it for PFN construction
+# without pulling in the pydasi client stack.
+package-dir = {"" = "src"}
+py-modules = ["rucio_s3boto3"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = [
-  "backend*",
-  "pydasi*",
-  "utils*",
+  "pydasi*"
 ]
 exclude = [
   "tests*",
@@ -75,7 +78,7 @@ exclude = [
 "backend.libs" = ["*.so", "*.dylib", "*.dll"]
 
 [tool.setuptools.dynamic]
-version = {attr = "utils.version.__version__"}
+version = {attr = "pydasi.utils.version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "6.0"

@@ -16,6 +16,9 @@ import os
 import errno
 
 from platform import system as p_system
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class FindLib:
@@ -24,11 +27,8 @@ class FindLib:
     """
 
     def __init__(self, name: str, dir: str):
-        import logging
 
-        self._log = logging.getLogger(__name__)
-
-        self._log.info("Searching library '%s' ...", name)
+        logger.debug("Searching library '%s' ...", name)
 
         platform = p_system()
 
@@ -37,7 +37,7 @@ class FindLib:
 
         self.__name = "lib" + name
 
-        self._log.debug("library name: %s", self.__name)
+        logger.debug("library name: %s", self.__name)
 
         paths = [os.path.join(dir, "libs", platform)]
         for env_var in ("DASI_DIR", "dasi_DIR", "LD_LIBRARY_PATH"):
@@ -67,11 +67,9 @@ class FindLib:
         self.__path = scan_paths(paths)
 
         if not os.path.exists(self.__path):
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), self.__path
-            )
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), self.__path)
 
-        self._log.info("found: '%s'", self.__path)
+        logger.debug("found: '%s'", self.__path)
 
     @property
     def path(self):

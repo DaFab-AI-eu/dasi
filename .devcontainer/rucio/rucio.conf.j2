@@ -20,6 +20,7 @@ LogFormat "%h\t%t\t%{X-Rucio-Forwarded-For}i\t%T\t%D\t\"%{X-Rucio-Auth-Token}i\"
 WSGIRestrictEmbedded On
 WSGIDaemonProcess rucio processes={{ RUCIO_WSGI_DAEMON_PROCESSES | default('4') }} threads={{ RUCIO_WSGI_DAEMON_THREADS | default('4') }}
 WSGIApplicationGroup rucio
+WSGIPythonPath /workspace/dasi/pydasi/src
 
 CacheEnable disk /
 CacheRoot /tmp
