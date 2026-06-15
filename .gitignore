@@ -39,3 +39,5 @@ bundle/eckit
 bundle/fdb
 bundle/metkit
 bundle/dasi
+examples/rucio/retrieved
+**/pydasi/backend/libs
