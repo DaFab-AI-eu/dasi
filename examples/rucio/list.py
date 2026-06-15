@@ -12,31 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""List DIDs in a Rucio catalogue using the pydasi Rucio backend.
 
-All settings are read from ``pydasi.yml`` in this directory, which in turn
-references ``rucio.cfg`` for the connection credentials.  Both ship with
-working defaults for the devcontainer stack; adjust them before running
-against any other deployment.
-
-Run inside the devcontainer after the Rucio + MinIO stack is up:
-
-    cd /workspace/dasi/examples/rucio
-    python list.py
-"""
-
-import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict
+from helper import setup_logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
-)
+import logging as _logging
+
+logger = _logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
-CONFIG_PATH = str(HERE / "pydasi.yml")
+CONFIG_PATH = str(HERE / "dasi.yml")
 
 # A few queries of increasing specificity to show how metadata filters narrow
 # the result set produced by archive.py.
@@ -49,20 +36,22 @@ QUERIES = [
 
 
 def run_query(dasi, query: Dict[str, Any]) -> int:
-    print(f"=== query: {query}")
+    logger.info(f"=== query: {query}")
     count = 0
     for item in dasi.list(query):
         count += 1
-        print(f"  name={item.name} bytes={item.length} uri={item.uri}")
+        logger.info(f"  name={item.name} bytes={item.length} uri={item.uri}")
     if count == 0:
-        print("  (none) — run archive.py first")
+        logger.info("  (none) — run archive.py first")
     else:
-        print(f"  {count} match(es)")
+        logger.info(f"  {count} match(es)")
     return count
 
 
 def main() -> int:
     from pydasi import Rucio
+
+    setup_logging()
 
     dasi = Rucio(CONFIG_PATH)
 

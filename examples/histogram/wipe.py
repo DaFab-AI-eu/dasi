@@ -13,12 +13,18 @@
 # limitations under the License.
 
 
-from helper import cmdline_args
+import logging
+
+from helper import cmdline_args, setup_logging
 
 from pydasi import Dasi
 
+logger = logging.getLogger(__name__)
+
 
 def main():
+    setup_logging()
+
     args = cmdline_args()
 
     query = {
@@ -38,9 +44,9 @@ def main():
 
     # Wipe data
     for item in session.wipe(query, True):
-        print("wiped: ", item.value)
+        logger.info("wiped: %s", item.value)
 
-    print("Finished!")
+    logger.info("Finished!")
 
 
 if __name__ == "__main__":

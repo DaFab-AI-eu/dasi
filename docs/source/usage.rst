@@ -45,7 +45,7 @@ We use the :py:meth:`pydasi.dasi.Dasi.archive` function to save example data ``S
 .. code-block:: python
 
    from dasi import Dasi
-   dasi = Dasi("config.yaml")
+   dasi = Dasi("config.yml")
    key=["User":"muster", "Project":"simple", "Date":"16-03-23", "Type":"text"]
    data="SIMPLE_DATA"
    dasi.archive(key, data)

@@ -12,12 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import os
+
+def setup_logging() -> None:
+    if os.environ.get("DEBUG"):
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(levelname)-8s [%(name)-20s] %(message)s",
+        )
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(message)s")
+
 
 def cmdline_args():
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", default="dasi.yaml")
+    parser.add_argument("-c", "--config", default="dasi.yml")
     parser.add_argument("-u", "--UserID", default="0001-2345-6789")
     parser.add_argument("-i", "--Institute", default="ECMWF")
     parser.add_argument("-p", "--Project", default="IOSEA")

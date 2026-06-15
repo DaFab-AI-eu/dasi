@@ -45,12 +45,11 @@ int main(int argc, char* argv[]) {
     try {
         // read the user inputs
         const std::vector<std::string> args(argv + 1, argv + argc);
-        configFile          = weather::utils::getInputString(args, "-c", "--config", "dasi.yaml");
+        configFile          = weather::utils::getInputString(args, "-c", "--config", "dasi.yml");
         userInput.user      = weather::utils::getInputString(args, "-u", "--user", "metin");
         userInput.institute = weather::utils::getInputString(args, "-i", "--institute", "ecmwf");
         userInput.type      = weather::utils::getInputString(args, "-t", "--type");
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
         return 1;
     }

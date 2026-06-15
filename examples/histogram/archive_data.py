@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from sys import argv
+import logging
 
-from helper import DirectoryStore, cmdline_args
+from helper import DirectoryStore, cmdline_args, setup_logging
 
 from pydasi import Dasi
 
+logger = logging.getLogger(__name__)
+
 
 def main():
+    setup_logging()
+
     args = cmdline_args()
     key = {
         "UserID": args.UserID,
@@ -32,18 +36,18 @@ def main():
 
     dir = DirectoryStore(args.Directory)
 
-    print("Archiving data from: %s" % args.Directory)
+    logger.info("Archiving data from: %s", args.Directory)
 
     session = Dasi(args.config)
 
     for name, ext, data in dir.files():
-        print("Archiving: %s" % name)
+        logger.info("Archiving: %s", name)
         key["Name"] = name
         key["Type"] = ext
         session.archive(key, data)
-        print("Archived: %s.%s" % (name, ext))
+        logger.info("Archived: %s.%s", name, ext)
 
-    print("Finished!")
+    logger.info("Finished!")
 
 
 if __name__ == "__main__":

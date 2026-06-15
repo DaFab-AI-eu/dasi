@@ -88,8 +88,8 @@ markers = ["slow", "parallel"]
 
 # ruff configuration (replaces flake8)
 [tool.ruff]
-line-length = 80
-target-version = "py39"
+line-length = 120
+target-version = "py311"
 src = ["src"]
 
 [tool.ruff.lint]
@@ -110,7 +110,7 @@ combine-as-imports = true
 
 # Black formatting
 [tool.black]
-line-length = 80
+line-length = 120
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -130,7 +130,7 @@ exclude = '''
 # isort
 [tool.isort]
 profile = "black"
-line_length = 80
+line_length = 120
 multi_line_output = 3
 include_trailing_comma = true
 src_paths = ["src"]
@@ -143,11 +143,11 @@ defineConstant = { DEBUG = true }
 venvPath = ".venv"
 
 [tool.tox]
-envlist = ["py39", "py38", "pypy3"]
+envlist = ["py310","py311","pypy3"]
 
 reportMissingImports = true
 # reportMissingTypeStubs = false
 
-pythonVersion = "3.8"
+pythonVersion = "3.11"
 
 executionEnvironments = [{ root = "src" }]

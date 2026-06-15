@@ -12,7 +12,7 @@ This example demonstrates an image processing workflow.
 
 ### 1. Setup:
 
-Replace the paths in `dasi.yaml` such that they point to your local repository:
+Replace the paths in `dasi.yml` such that they point to your local repository:
 
 ```yaml
 schema: SET_PATH_TO_DASI_SCHEMA_FILE

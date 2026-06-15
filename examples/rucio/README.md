@@ -10,14 +10,14 @@ on top of a [Rucio](https://rucio.cern.ch/) data-management server.
 | `archive.py` | End-to-end archive example (upload files + attach metadata) |
 | `list.py` | List DIDs in the catalogue with optional metadata filters |
 | `retrieve.py` | Download files matching a metadata query |
-| `pydasi.yml` | Backend settings loaded via `Rucio("pydasi.yml")` |
+| `dasi.yml` | Backend settings loaded via `Rucio("dasi.yml")` |
 | `rucio.cfg` | Annotated client configuration (credentials, server URL) |
 | `rucio_ca_bundle.pem` | CA certificate bundle for TLS verification |
 
 ## Requirements
 
 ```sh
-pip install "rucio-clients>=40" boto3
+pip install "rucio-clients==40.2.0" boto3
 ```
 
 ## Quick start (devcontainer)
@@ -116,10 +116,10 @@ settings explicitly.  The examples in this directory use the YAML form:
 ```python
 from pydasi import Rucio
 
-dasi = Rucio("pydasi.yml")
+dasi = Rucio("dasi.yml")
 ```
 
-`pydasi.yml` holds the backend settings (relative path-like values are
+`dasi.yml` holds the backend settings (relative path-like values are
 resolved relative to the file's location):
 
 ```yaml
@@ -176,7 +176,7 @@ temporary directory is removed after each file.
 #### `dasi.archive(key, data, filename=None, lifetime=None)`
 
 Upload *data* and attach *key* as DID metadata.  The target scope and RSE come
-from the `Rucio` instance (i.e. `pydasi.yml`):
+from the `Rucio` instance (i.e. `dasi.yml`):
 
 ```python
 did = dasi.archive(
@@ -193,7 +193,7 @@ filtering by each of those keys.
 
 ## Mapping DASI keys to Rucio metadata
 
-DASI keys are flat key → value dicts.  They map to Rucio DID metadata
+DASI keys are flat key -> value dicts.  They map to Rucio DID metadata
 attributes set via `set_metadata` / queried via `list_dids(filters=...)`.
 
 ```
@@ -201,7 +201,7 @@ DASI key                     Rucio metadata attribute
 ────────────────────────────────────────────────────
 {"experiment": "dasi-dev"}   experiment = "dasi-dev"
 {"run": "42"}                run = "42"
-{"scope": "user.alice"}      → selects Rucio scope "user.alice"
+{"scope": "user.alice"}      -> selects Rucio scope "user.alice"
 ```
 
 ## Security notes
