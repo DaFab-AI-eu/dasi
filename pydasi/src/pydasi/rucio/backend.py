@@ -13,17 +13,18 @@
 # limitations under the License.
 
 import os
+import re
 import tempfile
-
+from logging import getLogger as _getLogger
 from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence
-from logging import getLogger as _getLogger
-from rucio.common.types import FileToUploadDict
 
 from .list import RucioList
 from .retrieve import RucioRetrieve
 
 logger = _getLogger(__name__)
+
+_SAFE_FILENAME_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 class Rucio:
@@ -62,10 +63,7 @@ class Rucio:
         self._dl_client = DownloadClient(client=self._client, logger=logger)
         self._ul_client = UploadClient(_client=self._client, logger=logger)
 
-    def list(
-        self,
-        query: Sequence[dict[str, Any]],
-    ) -> RucioList:
+    def list(self, query: Sequence[dict[str, Any]]) -> RucioList:
         logger.debug("list query=%r", query)
         result = RucioList(
             client=self._client,
@@ -74,10 +72,7 @@ class Rucio:
         )
         return result
 
-    def retrieve(
-        self,
-        query: Sequence[dict[str, Any]],
-    ) -> RucioRetrieve:
+    def retrieve(self, query: Sequence[dict[str, Any]]) -> RucioRetrieve:
         logger.debug("retrieve query=%r", query)
         result = RucioRetrieve(
             client=self._client,
@@ -89,25 +84,27 @@ class Rucio:
         )
         return result
 
-    def archive(
-        self,
-        key: dict[str, Any],
-        data: bytes,
-        filename: Optional[str] = None,
-        lifetime: Optional[int] = None,
-    ) -> str:
-        if not self._rse:
-            raise ValueError("RSE must be configured!")
+    # uploads the given data to Rucio, using a filename derived from the key.
+    # It then attaches metadata attributes corresponding to the key items.
+    # Note: Rucio's upload API is designed for files on disk,
+    # so we need to write the data to a temporary file first.
+    def archive(self, key: dict[str, Any], data: bytes):
+        from rucio.common.types import FileToUploadDict
 
-        if not filename:
-            # TODO check logic; Build a deterministic filename from sorted key items
-            parts = "_".join(f"{k}-{v}" for k, v in sorted(key.items()))
-            filename = f"{parts}.bin"
+        # Build a deterministic, filesystem-safe filename from key items.
+        parts = "_".join(
+            f"{self._safe_filename_component(k)}-{self._safe_filename_component(v)}" for k, v in sorted(key.items())
+        )
+        filename = f"{parts}.data"
 
         logger.debug(f"Archiving [{self._scope}:{filename}] on rse[{self._rse}]")
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            local_path = Path(tmpdir) / filename
+            tmpdir_path = Path(tmpdir).resolve()
+            local_path = (tmpdir_path / filename).resolve()
+            if local_path.parent != tmpdir_path:
+                raise ValueError(f"Unsafe filename generated from key: {filename!r}")
+
             with open(local_path, "wb") as fh:
                 fh.write(data)
 
@@ -120,29 +117,78 @@ class Rucio:
                     "no_register": False,
                 }
             ]
-            if lifetime is not None:
-                upload_item[0]["lifetime"] = lifetime
 
+            uploaded = False
             try:
-                self._ul_client.upload(upload_item)
+                upload_result = self._ul_client.upload(upload_item)
+                self._validate_upload_result(upload_result, filename)
+                uploaded = True
             except Exception as exc:
                 from rucio.common.exception import NoFilesUploaded
 
                 if isinstance(exc, NoFilesUploaded):
-                    logger.debug(f"{self._scope}:{filename} already present on {self._rse} — skipping upload")
+                    logger.warning(f"{self._scope}:{filename} already present on {self._rse}")
                 else:
                     raise
 
         # Attach metadata attributes
-        for attr_key, attr_val in key.items():
-            try:
-                self._client.set_metadata(scope=self._scope, name=filename, key=attr_key, value=str(attr_val))
-            except Exception as exc:
-                logger.warning(f"Could not set metadata {attr_key!r}={attr_val!r} on {self._scope}:{filename} — {exc}")
+        if uploaded:
+            metadata: dict[str, str] = {str(attr_key): str(attr_val) for attr_key, attr_val in key.items()}
 
-        did = f"{self._scope}:{filename}"
-        logger.debug(f"Archived {did}")
-        return did
+            metadata_errors: list[str] = []
+            for attr_key, attr_val in metadata.items():
+                try:
+                    self._client.set_metadata(scope=self._scope, name=filename, key=attr_key, value=attr_val)
+                except Exception as exc:
+                    metadata_errors.append(f"{attr_key!r}={attr_val!r}: {exc}")
+
+            if metadata_errors:
+                raise RuntimeError(
+                    f"Upload succeeded but metadata update failed for {self._scope}:{filename}: "
+                    + "; ".join(metadata_errors)
+                )
+
+        logger.debug(f"Archived {self._scope}:{filename} on {self._rse}.")
+
+    @staticmethod
+    def _safe_filename_component(value: Any) -> str:
+        text = str(value).strip()
+        if not text:
+            return "empty"
+
+        text = _SAFE_FILENAME_CHARS.sub("-", text)
+        text = text.strip(".-_")
+        return text or "empty"
+
+    @staticmethod
+    def _validate_upload_result(upload_result: Any, filename: str) -> None:
+        if upload_result is None:
+            return
+
+        if isinstance(upload_result, bool):
+            if not upload_result:
+                raise RuntimeError(f"Upload returned unsuccessful status for DID name {filename!r}")
+            return
+
+        if isinstance(upload_result, dict):
+            error = upload_result.get("error") or upload_result.get("exception")
+            if error:
+                raise RuntimeError(f"Upload returned an error for DID name {filename!r}: {error}")
+            return
+
+        if isinstance(upload_result, Sequence) and not isinstance(upload_result, (str, bytes, bytearray)):
+            if len(upload_result) == 0:
+                raise RuntimeError(f"Upload returned an empty result for DID name {filename!r}")
+
+            errors = []
+            for item in upload_result:
+                if isinstance(item, dict):
+                    error = item.get("error") or item.get("exception")
+                    if error:
+                        errors.append(str(error))
+
+            if errors:
+                raise RuntimeError(f"Upload reported errors for DID name {filename!r}: {'; '.join(errors)}")
 
     @staticmethod
     def _read_rucio_config(path: str) -> dict[str, Any]:

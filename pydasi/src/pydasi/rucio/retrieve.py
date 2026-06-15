@@ -14,8 +14,8 @@
 
 import os
 import tempfile
-from typing import Any, Dict, Optional, Sequence
 from logging import getLogger as _getLogger
+from typing import Any, Dict, Optional, Sequence
 
 from rucio.client import Client
 from rucio.client.downloadclient import DownloadClient

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging as _logging
 import os
 import sys
 from pathlib import Path
-from helper import setup_logging
 
-import logging as _logging
+from helper import setup_logging
 
 logger = _logging.getLogger(__name__)
 
@@ -35,13 +35,13 @@ def main() -> int:
     dasi = Rucio(CONFIG_PATH)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    logger.info(f"=== Retrieve output directory: {OUT_DIR}")
+    logger.info(f"=== Retrieve output directory: {OUT_DIR} ===")
 
     # -----------------------------------------------------------------------
     # 1. Retrieve every file tagged with the temperature parameter
     # -----------------------------------------------------------------------
     query = [{"experiment": "dasi-dev", "parameter": "temperature"}]
-    logger.info(f"\n--- query: {query}")
+    logger.info(f"\n--- QUERY: {query} ---")
 
     retrieved = 0
     for item in dasi.retrieve(query):
@@ -59,7 +59,7 @@ def main() -> int:
     # 2. Retrieve a single run/step with a narrower filter
     # -----------------------------------------------------------------------
     query_narrow = [{"experiment": "dasi-dev", "run": "002", "parameter": "humidity"}]
-    logger.info(f"\n--- query: {query_narrow}")
+    logger.info(f"\n--- QUERY: {query_narrow} ---")
 
     retrieved = 0
     for item in dasi.retrieve(query_narrow):

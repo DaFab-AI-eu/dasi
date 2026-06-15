@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging as _logging
 import sys
 from pathlib import Path
 from typing import Any, Dict
-from helper import setup_logging
 
-import logging as _logging
+from helper import setup_logging
 
 logger = _logging.getLogger(__name__)
 
@@ -35,17 +35,14 @@ QUERIES = [
 ]
 
 
-def run_query(dasi, query: Dict[str, Any]) -> int:
-    logger.info(f"=== query: {query}")
+def run_query(dasi, query: Dict[str, Any]):
+    logger.info(f"=== QUERY: {query} ===")
     count = 0
     for item in dasi.list(query):
         count += 1
-        logger.info(f"  name={item.name} bytes={item.length} uri={item.uri}")
+        logger.info(f"#{count} name={item.name} bytes={item.length} uri={item.uri}")
     if count == 0:
-        logger.info("  (none) — run archive.py first")
-    else:
-        logger.info(f"  {count} match(es)")
-    return count
+        logger.info("No matches found")
 
 
 def main() -> int:
@@ -57,7 +54,7 @@ def main() -> int:
 
     for query in QUERIES:
         run_query(dasi, query)
-        print()
+        logger.info("")
 
     return 0
 

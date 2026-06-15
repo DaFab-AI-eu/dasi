@@ -160,39 +160,39 @@ services:
     stdin_open: true
     tty: true
 
-#   test:
-#     build:
-#       context: ..
-#       dockerfile: Dockerfile
-#       target: dasi-tester
-#       args:
-#         - DASI_VERSION=0.2.8
-#     depends_on:
-#       rucio-server:
-#         condition: service_healthy
-#       minio:
-#         condition: service_healthy
-#     env_file: .env
-#     command: >
-#       bash -lc "
-#         set -ex;
-#         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
-#         cmake --build /tmp/build/dasi-bundle --target pydasi_test
-#       "
-#
-#   runtime:
-#     build:
-#       context: ..
-#       dockerfile: Dockerfile
-#       target: dasi-runtime
-#       args:
-#         - DASI_VERSION=0.2.8
-#     command: >
-#       bash -lc "
-#         echo 'DASI Lib version:' $(dasi version) &&
-#         python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
-#         python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
-#       "
+  test:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-tester
+      args:
+        - DASI_VERSION=0.2.8
+    depends_on:
+      rucio-server:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    env_file: .env
+    command: >
+      bash -lc "
+        set -ex;
+        ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
+        cmake --build /tmp/build/dasi-bundle --target pydasi_test
+      "
+
+  runtime:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-runtime
+      args:
+        - DASI_VERSION=0.2.8
+    command: >
+      bash -lc "
+        echo 'DASI Lib version:' $(dasi version) &&
+        python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
+        python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
+      "
 
 
 volumes:

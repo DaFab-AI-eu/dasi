@@ -121,6 +121,7 @@ WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
 COPY ./bundle/Linux.cmake .
+COPY . ./dasi
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
@@ -152,6 +153,10 @@ RUN set -ex; \
 # Runtime stage
 # =============================================================================
 FROM rockylinux/rockylinux:9.6-minimal AS dasi-runtime
+
+ARG DASI_VERSION=0.2.9
+
+LABEL version="dasi:${DASI_VERSION}"
 
 # Install only runtime dependencies
 RUN set -ex; \

@@ -13,24 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging as _logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
+
 from helper import setup_logging
-import logging as _logging
 
 logger = _logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 CONFIG_PATH = str(HERE / "dasi.yml")
-SOURCE_FILE = HERE / "file.nc"
 
-# Each entry pairs a distinct metadata key with a target DID name.  The same
-# source payload is reused for every item; only the metadata differs, which is
-# what list.py / retrieve.py query against.
 DATASET: List[Dict[str, Any]] = [
     {
-        "filename": "temperature_run001_step0.nc",
         "key": {
             "experiment": "dasi-dev",
             "run": "001",
@@ -39,7 +35,6 @@ DATASET: List[Dict[str, Any]] = [
         },
     },
     {
-        "filename": "temperature_run001_step6.nc",
         "key": {
             "experiment": "dasi-dev",
             "run": "001",
@@ -48,7 +43,6 @@ DATASET: List[Dict[str, Any]] = [
         },
     },
     {
-        "filename": "pressure_run001_step0.nc",
         "key": {
             "experiment": "dasi-dev",
             "run": "001",
@@ -57,7 +51,6 @@ DATASET: List[Dict[str, Any]] = [
         },
     },
     {
-        "filename": "humidity_run002_step0.nc",
         "key": {
             "experiment": "dasi-dev",
             "run": "002",
@@ -73,23 +66,16 @@ def main() -> int:
 
     setup_logging()
 
-    if not SOURCE_FILE.exists():
-        logger.error(f"source file not found: {SOURCE_FILE}")
-        return 1
-
     dasi = Rucio(CONFIG_PATH)
 
-    data = SOURCE_FILE.read_bytes()
-
     for item in DATASET:
-        did = dasi.archive(
-            key=item["key"],
-            data=data,
-            filename=item["filename"],
-        )
-        logger.info(f"archived -> {did}")
-        logger.info(f"  metadata : {item['key']}")
-        logger.info(f"  bytes    : {len(data)}")
+        key = item["key"]
+        data = (
+            "generated sample dataset for rucio archive example:\n"
+            + "\n".join(f"{k}={v}" for k, v in key.items())
+        ).encode()
+        logger.info(f"Archiving data with key={key}, bytes={len(data)}")
+        dasi.archive(key=key, data=data)
 
     logger.info(f"\n{len(DATASET)} file(s) archived")
 
