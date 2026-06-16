@@ -17,23 +17,23 @@ from typing import Final
 
 from packaging.version import Version
 
-
-__version__: Final[str] = "0.2.8"
+__version__: Final[str] = "0.2.9"
 
 
 def is_compatible(library_version: str) -> bool:
     """Check if library version is compatible with Python package.
-    
+
     Args:
         library_version: Version string from the C library
-        
+
     Returns:
         True if library version >= Python package version (compatible)
         False if library is older than Python package (incompatible)
-        
+
     Raises:
         ValueError: If version strings are invalid
     """
+
     try:
         lib_ver = Version(library_version)
         pkg_ver = Version(__version__)

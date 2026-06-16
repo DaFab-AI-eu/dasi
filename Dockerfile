@@ -113,7 +113,7 @@ RUN set -ex; \
 # =============================================================================
 FROM build-dependencies AS dasi-builder
 
-ARG DASI_VERSION=0.2.8
+ARG DASI_VERSION=0.2.9
 
 RUN echo "Building DASI Version: ${DASI_VERSION}"
 

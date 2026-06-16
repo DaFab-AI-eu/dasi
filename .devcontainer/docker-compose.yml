@@ -166,7 +166,7 @@ services:
       dockerfile: Dockerfile
       target: dasi-tester
       args:
-        - DASI_VERSION=0.2.8
+        - DASI_VERSION=0.2.9
     depends_on:
       rucio-server:
         condition: service_healthy
@@ -186,7 +186,7 @@ services:
       dockerfile: Dockerfile
       target: dasi-runtime
       args:
-        - DASI_VERSION=0.2.8
+        - DASI_VERSION=0.2.9
     command: >
       bash -lc "
         echo 'DASI Lib version:' $(dasi version) &&
