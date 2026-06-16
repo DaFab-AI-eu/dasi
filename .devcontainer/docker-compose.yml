@@ -181,12 +181,13 @@ services:
       "
 
   runtime:
+    image: dasi:${DASI_VERSION:-latest}
     build:
       context: ..
       dockerfile: Dockerfile
       target: dasi-runtime
       args:
-        - DASI_VERSION=0.2.9
+        - DASI_VERSION=${DASI_VERSION:-latest}
     command: >
       bash -lc "
         echo 'DASI Lib version:' $(dasi version) &&

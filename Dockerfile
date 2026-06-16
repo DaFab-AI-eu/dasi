@@ -121,7 +121,6 @@ WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
 COPY ./bundle/Linux.cmake .
-COPY . ./dasi
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
