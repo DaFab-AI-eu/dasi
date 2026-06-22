@@ -27,6 +27,10 @@ The Rucio backend is implemented as a pure Python module (`pydasi.rucio`) compri
 - **`RucioRetrieve/RucioRetrieveItem`**: File download with in-memory data access
 - **Archive operations**: Multi-step registration and metadata attachment
 
+### 1.3 S3 Protocol Module (`rucio_s3boto3.py`)
+
+The integration also relies on `pydasi/src/rucio_s3boto3.py`, a custom Rucio RSE protocol implementation (`rucio_s3boto3.Default`) for S3-compatible storage such as MinIO. This module is intentionally kept outside the `pydasi` package so it can be loaded by `rucio-server` for deterministic PFN construction (`lfns2pfns`) without requiring the full PyDASI client stack. In practice, this component provides the transfer primitives (`connect`, `get`, `put`, `exists`, `stat`, `rename`, `delete`) used when the Rucio backend is configured with `protocol: s3`.
+
 ---
 
 ## 2. Operational Workflow
