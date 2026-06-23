@@ -67,6 +67,10 @@ jobs:
       - name: Run tests
         run: docker compose -f .devcontainer/docker-compose.yml run --rm --build test
 
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose -f .devcontainer/docker-compose.yml logs --no-color --timestamps
+
       - name: Tear down compose stack
         if: always()
         run: docker compose -f .devcontainer/docker-compose.yml down --volumes --remove-orphans
