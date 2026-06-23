@@ -13,12 +13,13 @@
 # limitations under the License.
 
 from os import path as ospath
+from logging import getLogger as _getLogger
 from cffi import FFI
 
-import logging
+from pydasi.utils import FindLib
+from pydasi.utils import version
 
-from utils import FindLib, version
-
+logger = _getLogger(__name__)
 
 ffi = FFI()
 
@@ -77,9 +78,7 @@ def new_query(query=None) -> FFI.CData:
     return ffi.gc(cquery[0], lib.dasi_free_query)
 
 
-def new_wipe(
-    cdasi: FFI.CData, cquery: FFI.CData, cdoit: FFI.CData, call: FFI.CData
-) -> FFI.CData:
+def new_wipe(cdasi: FFI.CData, cquery: FFI.CData, cdoit: FFI.CData, call: FFI.CData) -> FFI.CData:
     check_type(cdasi, "dasi_t *")
     check_type(cquery, "dasi_query_t *")
     check_type(cdoit, "int *")
@@ -144,14 +143,12 @@ class PatchedLib:
         osenv["ECKIT_ASSERT_FAILED_IS_SILENT"] = "1"
 
         self.__loaded = False
-        self._log = logging.getLogger(__package__)
-        self._log.info("version: %s", version.__version__)
 
     def load(self):
         if self.__loaded:
             return
 
-        self._log.info("Loading DASI C library...")
+        logger.debug("Loading DASI C library...")
 
         # parse the C source; types, functions, globals, etc.
         # This must be done only once, as CFFI caches type definitions
@@ -162,7 +159,7 @@ class PatchedLib:
             libdasi = FindLib("dasi", __file_dir__).path
             self.__lib = ffi.dlopen(libdasi)
         except Exception as e:
-            self._log.error(str(e))
+            logger.exception("Failed to load DASI C library")
             raise CFFIModuleLoadFailed from e
 
         # All of the executable members of the CFFI-loaded library are
@@ -178,8 +175,8 @@ class PatchedLib:
                     self.__check_error(attr, f) if callable(attr) else attr,
                 )
             except Exception as e:
-                self._log.error(str(e))
-                self._log.error("Cannot set attribute ", f, " from library")
+                logger.error(str(e))
+                logger.error("Cannot set attribute %s from library", f)
 
         self.check_version()
 
@@ -194,12 +191,13 @@ class PatchedLib:
         library_version = read_lib_version(self.__lib)
 
         if version.is_compatible(library_version):
-            self._log.info("C Library version %s is compatible (package: %s)",
-                           library_version, version.__version__)
+            logger.debug(f"C Library version {library_version} is compatible (package: {version.__version__})")
         else:
-            msg = (f"C Library version {library_version} is older than Python package "
-                   f"{version.__version__}. Please upgrade the C library.")
-            self._log.error(msg)
+            msg = (
+                f"C Library version {library_version} is older than Python package {version.__version__}. "
+                "Please upgrade the C library."
+            )
+            logger.error(msg)
             raise CFFIModuleLoadFailed(msg)
 
     def __check_error(self, fn, name: str):
@@ -215,7 +213,8 @@ class PatchedLib:
                 self.__lib.DASI_ITERATION_COMPLETE,
             ):
                 err = ffi_decode(self.__lib.dasi_get_error_string())
-                msg = "Error in function '{}': {}".format(name, err)
+                msg = f"Error in function '{name}': {err}"
+                logger.error(msg)
                 raise DASIException(msg, err)
             return retval
 
@@ -225,4 +224,5 @@ class PatchedLib:
 try:
     lib = PatchedLib()
 except CFFIModuleLoadFailed as e:
+    logger.error("Failed to load DASI C library: %s", e)
     raise ImportError() from e

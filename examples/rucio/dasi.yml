@@ -1,0 +1,13 @@
+---
+type: local
+engine: toc
+schema: ./schema
+spaces:
+  - roots:
+    - path: ./database
+# Rucio backend configuration
+rucio:
+  config_path: rucio.cfg   # path to rucio.cfg (credentials + server URL)
+  scope: user.root         # Rucio scope for new/queried DIDs
+  rse: MINIORSE            # target Replica Storage Element
+  protocol: s3             # preferred transfer protocol

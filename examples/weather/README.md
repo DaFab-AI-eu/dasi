@@ -21,7 +21,7 @@ cmake --build ./build
 ### Schema
 
 > [!IMPORTANT]
-> Set valid paths in the `dasi.yaml`.
+> Set valid paths in the `dasi.yml`.
 
 ```
 schema: path/to/schema/file
@@ -40,7 +40,7 @@ The `forecast` app generates the mock data in the DASI root path. The options
 can be set to manipulate the metadata, see `forecast -h`. Example usage,
 
 ```
-./build/forecast -c ./dasi.yaml -t 1320
+./build/forecast -c ./dasi.yml -t 1320
 ```
 
 ### Mean app
@@ -51,7 +51,7 @@ ensemble means of a chosen timestep and store the results in DASI.
 Example usage,
 
 ```
-./build/mean -c ./dasi.yaml -t 1320 -s 2
+./build/mean -c ./dasi.yml -t 1320 -s 2
 ```
 
 here, `-t` is the forecast time, and `-s` is the step number.

@@ -1,5 +1,5 @@
 include CHANGELOG
 include LICENSE
 include README.md
-include src/backend/include/*.h
-include src/backend/libs/**/lib*
+include src/pydasi/backend/include/*.h
+include src/pydasi/backend/libs/**/lib*

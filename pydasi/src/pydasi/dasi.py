@@ -13,12 +13,14 @@
 # limitations under the License.
 
 
-from backend import ffi, lib, new_dasi
-
+from pydasi.backend import ffi, lib, new_dasi
 from .key import Key
 from .wipe import Wipe
 from .list import List
 from .retrieve import Retrieve
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class Dasi:
@@ -31,7 +33,7 @@ class Dasi:
         from dasi import Dasi
 
         # Create new DASI session
-        dasi = Dasi("config.yaml")
+        dasi = Dasi("config.yml")
     """
 
     def __init__(self, config: str):
@@ -40,13 +42,10 @@ class Dasi:
 
         :param str config: the configuration file.
         """
-        import logging
 
         lib.load()
 
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("Initialize Dasi...")
+        logger.debug("Initialize Dasi...")
 
         self._cdata = new_dasi(config)
 
@@ -58,7 +57,7 @@ class Dasi:
         :param data: A pointer to a (read-only) copy of the data
         """
 
-        self._log.debug("Archiving...")
+        logger.debug("Archiving...")
 
         dbuffer = ffi.from_buffer(data)
 
@@ -72,7 +71,7 @@ class Dasi:
         :rtype: Wipe
         """
 
-        self._log.debug("Wiping...")
+        logger.debug("Wiping...")
 
         return Wipe(self._cdata, query, doit, all)
 
@@ -84,7 +83,7 @@ class Dasi:
         :rtype: List
         """
 
-        self._log.debug("Listing...")
+        logger.debug("Listing...")
 
         return List(self._cdata, query)
 
@@ -96,7 +95,7 @@ class Dasi:
         :rtype: Retrieve
         """
 
-        self._log.debug("Retrieving...")
+        logger.debug("Retrieving...")
 
         return Retrieve(self._cdata, query)
 
@@ -105,6 +104,6 @@ class Dasi:
         Flushes all buffers and ensures internal state is safe (wrt failure).
         """
 
-        self._log.debug("Flushing...")
+        logger.debug("Flushing...")
 
         lib.dasi_flush(self._cdata)

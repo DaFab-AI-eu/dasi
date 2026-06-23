@@ -128,7 +128,7 @@ spaces:
     - path: ./database
 ```
 
-For S3 backends, add S3 configuration (see [examples/simple_s3/dasi.yaml](../../examples/simple_s3/dasi.yaml)).
+For S3 backends, add S3 configuration (see [examples/simple_s3/dasi.yml](../../examples/simple_s3/dasi.yml)).
 
 ### CLI Tools
 
@@ -169,7 +169,7 @@ results = dasi.retrieve({"User": ["alice", "bob"]})  # Multi-value query
 
 ### CFFI Integration (pydasi)
 
-Python wraps C API via CFFI ([pydasi/src/backend/](../../pydasi/src/backend/)):
+Python wraps C API via CFFI ([pydasi/src/pydasi/backend/](../../pydasi/src/pydasi/backend/)):
 - `_dasi_cffi.py`: C declarations and wrapper functions
 - Error handling: Raises `DASIException` on C library errors
 - Memory management: Uses FFI context managers for C pointers
@@ -191,7 +191,7 @@ Key imports in [src/api/Dasi.cc](../../src/api/Dasi.cc) show how dependencies ar
 ```cpp
 class DasiImpl {
     fdb5::FDB fdb_;  // The real storage engine
-    
+
     void archive(const Key& key, const void* data, size_t length) {
         fdb5::Key fdb_key;
         for (const auto& kv : key) { fdb_key.set(kv.first, kv.second); }

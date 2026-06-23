@@ -28,8 +28,8 @@ spaces:
   - roots:
     - path: ./database
 s3:
-  configuration: ./S3Config.yaml
-  credentials: ./S3Credentials.yaml
+  configuration: ./S3Config.yml
+  credentials: ./S3Credentials.yml
   roots:
   - endpoint: minio:9000
     bucket: dasi-example-bucket

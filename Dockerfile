@@ -1,3 +1,7 @@
+# DEPS_IMAGE selects the base for the downstream stages.
+# CI overrides it with a prebuilt GHCR image (e.g. ghcr.io/<owner>/dasi-build-deps:latest)
+ARG DEPS_IMAGE=build-dependencies
+
 # =============================================================================
 # Base image with compilers, tools, and pre-built dependencies (ecbuild, libaec, aws-sdk)
 # =============================================================================
@@ -9,11 +13,12 @@ RUN set -ex; \
     dnf config-manager --set-enabled crb && /usr/bin/crb enable && \
     dnf config-manager --set-enabled devel && \
     dnf install -y \
+    tar redhat-rpm-config ca-certificates \
     # Build tools
     git cmake ninja-build diffutils which unzip \
     # Compilers
     gcc gcc-c++ gcc-fortran \
-    binutils glibc-devel bison flex \
+    binutils glibc-devel bison flex findutils libffi-devel \
     # GCC toolset 14
     gcc-toolset-14 gcc-toolset-14-binutils gcc-toolset-14-libstdc++-devel gcc-toolset-14-libasan-devel \
     # Development libraries
@@ -25,8 +30,10 @@ RUN set -ex; \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
     # Python symlink and tools
-    ln -s /usr/bin/python3.11 /usr/bin/python && \
-    python -m pip install -q --upgrade pip setuptools wheel gcovr
+    ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python && \
+    python -m pip install -q --upgrade pip setuptools wheel gcovr && \
+    python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
 
 # Install ecbuild
 ADD --keep-git-dir=true https://github.com/ecmwf/ecbuild.git#3.12.0 /tmp/ecbuild
@@ -70,10 +77,12 @@ RUN set -ex; \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
 
+RUN mkdir -p /root/.rucio && chmod 700 /root/.rucio
+
 # =============================================================================
 # Development environment for devcontainer
 # =============================================================================
-FROM build-dependencies AS dev-env
+FROM ${DEPS_IMAGE} AS dev-env
 
 # Configure shell environment for interactive use
 RUN echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
@@ -106,9 +115,9 @@ RUN set -ex; \
 # =============================================================================
 # Builds DASI
 # =============================================================================
-FROM build-dependencies AS dasi-builder
+FROM ${DEPS_IMAGE} AS dasi-builder
 
-ARG DASI_VERSION=0.2.8
+ARG DASI_VERSION=${DASI_VERSION:-latest}
 
 RUN echo "Building DASI Version: ${DASI_VERSION}"
 
@@ -119,7 +128,7 @@ COPY ./bundle/Linux.cmake .
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
-    sed -i "s/set(.DASI_VERSION.*)/set( DASI_VERSION ${DASI_VERSION} )/" CMakeLists.txt && \
+    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
     sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -131,15 +140,22 @@ RUN set -ex; \
 # =============================================================================
 # Tests DASI
 # =============================================================================
-FROM dasi-builder AS dasi-tester
+FROM ${DEPS_IMAGE} AS dasi-tester
+
+ARG DASI_VERSION=${DASI_VERSION:-latest}
+
+RUN echo "Testing DASI Version: ${DASI_VERSION}"
 
 WORKDIR /workspace
 
+COPY ./bundle/CMakeLists.txt .
+COPY ./bundle/Linux.cmake .
+
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
+    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
     sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake && \
-    rm -rf /tmp/build/dasi-bundle && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
     cmake --build /tmp/build/dasi-bundle --target all pydasi_develop
 
@@ -148,18 +164,23 @@ RUN set -ex; \
 # =============================================================================
 FROM rockylinux/rockylinux:9.6-minimal AS dasi-runtime
 
+ARG DASI_VERSION=${DASI_VERSION:-latest}
+
+LABEL version="dasi:${DASI_VERSION}"
+
 # Install only runtime dependencies
 RUN set -ex; \
     microdnf install -y \
     libstdc++ \
     python3.11 \
-    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl && \
+    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl ca-certificates && \
     microdnf clean all && \
     rm -rf /var/cache/* /var/log/* /var/tmp/* && \
     ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     python -m ensurepip --upgrade  && \
-    python -m pip install --upgrade pip
+    python -m pip install --upgrade pip && \
+    python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
 
 # Copy DASI installation from builder
 COPY --from=dasi-builder /usr/local /usr/local/

@@ -12,19 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from backend import FFI, ffi, lib, ffi_decode, new_wipe
-
-# from dasi.dasi import Dasi
+from pydasi.backend import FFI, ffi, lib, ffi_decode, new_wipe
 from .query import Query
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class Wipe:
     def __init__(self, dasi: FFI.CData, query, doit: bool, all: bool):
-        import logging
-
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("Initialize Wipe...")
+        logger.debug("Initialize Wipe...")
 
         cdoit = ffi.new("dasi_bool_t *", doit)
         call = ffi.new("dasi_bool_t *", all)
@@ -33,19 +30,20 @@ class Wipe:
         self._cdata = new_wipe(dasi, Query(query).cdata, cdoit, call)
 
     def __str__(self) -> str:
-        return "wipe: {}".format(self.value)
+        return f"wipe: {self.value}"
 
     def __iter__(self):
         return self
 
     def __next__(self):
         if lib.dasi_wipe_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
+            logger.debug("Iteration complete.")
             raise StopIteration
         lib.dasi_wipe_get_value(self._cdata, self.__value)
         return self
 
     def __len__(self) -> int:
-        self._log.debug("not implemented in Dasi C lib!")
+        logger.debug("Not implemented in Dasi C lib!")
         return 0
 
     @property

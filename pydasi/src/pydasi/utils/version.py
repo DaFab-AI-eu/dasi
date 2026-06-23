@@ -1,0 +1,42 @@
+# Copyright 2023 European Centre for Medium-Range Weather Forecasts (ECMWF)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+from typing import Final
+
+from packaging.version import Version
+
+
+__version__: Final[str] = "0.3.0"
+
+
+def is_compatible(library_version: str) -> bool:
+    """Check if library version is compatible with Python package.
+
+    Args:
+        library_version: Version string from the C library
+
+    Returns:
+        True if library version >= Python package version (compatible)
+        False if library is older than Python package (incompatible)
+
+    Raises:
+        ValueError: If version strings are invalid
+    """
+    try:
+        lib_ver = Version(library_version)
+        pkg_ver = Version(__version__)
+        return lib_ver >= pkg_ver
+    except Exception as e:
+        raise ValueError(f"Invalid version format: {e}") from e

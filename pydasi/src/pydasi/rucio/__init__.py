@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from utils.config import Config
-from utils.find_lib import FindLib
-from utils.version import __version__
-
+from .backend import Rucio
+from .list import RucioList, RucioListItem
+from .retrieve import RucioRetrieve, RucioRetrieveItem
 
 __all__ = [
-    "FindLib",
-    "Config",
-    "__version__",
+    "Rucio",
+    "RucioList",
+    "RucioListItem",
+    "RucioRetrieve",
+    "RucioRetrieveItem",
 ]

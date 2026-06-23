@@ -12,16 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging as _logging
+
+_logger = _logging.getLogger(__name__)
+_logger.addHandler(_logging.NullHandler())
+
 from pydasi.dasi import Dasi
 from pydasi.key import Key
 from pydasi.query import Query
 from pydasi.wipe import Wipe
 from pydasi.list import List
 from pydasi.retrieve import Retrieve
-from backend import DASIException, check_type
-from utils import Config
-from utils.version import __version__ as Version
-
+from pydasi.rucio import Rucio
+from pydasi.backend import DASIException, check_type
+from pydasi.utils import Config
+from pydasi.utils.version import __version__ as Version
 
 __all__ = [
     "Dasi",
@@ -30,6 +35,7 @@ __all__ = [
     "Wipe",
     "List",
     "Retrieve",
+    "Rucio",
     "DASIException",
     "check_type",
     "Config",

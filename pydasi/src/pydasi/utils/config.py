@@ -16,7 +16,9 @@ import yaml
 
 from pathlib import Path
 from typing import Any, TypeVar, List, Dict
+from logging import getLogger as _getLogger
 
+logger = _getLogger(__name__)
 
 PathLike = TypeVar("PathLike", str, Path)
 
@@ -31,17 +33,12 @@ spaces:
 
 __default_config__ = __template__.format(schema_="./schema", path_="./root1")
 
-__default_path__ = "./dasi.yaml"
+__default_path__ = "./dasi.yml"
 
 
 class Config(object):
     def __init__(self) -> None:
-        import logging
-
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("Config init...")
-
+        logger.debug("Config init...")
         self._yaml = yaml.safe_load("schema:\nspaces:\n  - roots:")
 
     @property
@@ -59,7 +56,7 @@ class Config(object):
         return "config:\n%s" % self.dump
 
     def load(self, config: str = __default_config__):
-        from backend import DASIException
+        from pydasi.backend import DASIException
 
         self._yaml = yaml.safe_load(config)
 
@@ -71,7 +68,7 @@ class Config(object):
     def load_file(self, path: PathLike = __default_path__):
         import os
 
-        self._log.debug("- load config: %s", path)
+        logger.debug("- load config: %s", path)
 
         cfg_ = ""
 
@@ -82,7 +79,7 @@ class Config(object):
         return self.load(cfg_)
 
     def dump_file(self, path: PathLike = __default_path__):
-        self._log.debug("- dump config: %s", path)
+        logger.debug("- dump config: %s", path)
 
         with open(path, "w") as f:
             yaml.dump(self._yaml, f)

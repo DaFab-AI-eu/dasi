@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from backend import FFI, ffi, lib, new_retrieve
-
+from pydasi.backend import FFI, ffi, lib, new_retrieve
 from .key import Key
 from .query import Query
+from logging import getLogger as _getLogger
+
+logger = _getLogger(__name__)
 
 
 class Retrieve:
     def __init__(self, dasi: FFI.CData, query):
-        import logging
 
-        self._log = logging.getLogger(__name__)
-
-        self._log.debug("Initialize Retrieve...")
+        logger.debug("Initialize Retrieve...")
 
         self.__key = Key()
         self.__data = bytearray()
@@ -34,15 +33,14 @@ class Retrieve:
         self._cdata = new_retrieve(dasi, Query(query).cdata)
 
     def __str__(self) -> str:
-        return "{}, time: {}, offset: {}, length: {}".format(
-            self.key, self.timestamp, self.offset, self.length
-        )
+        return "{}, time: {}, offset: {}, length: {}".format(self.key, self.timestamp, self.offset, self.length)
 
     def __iter__(self):
         return self
 
     def __next__(self):
         if lib.dasi_retrieve_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
+            logger.debug("Iteration complete.")
             raise StopIteration
         self.__read()
         return self
@@ -54,16 +52,12 @@ class Retrieve:
 
     def __read(self):
         ckey = ffi.new("dasi_key_t **", ffi.NULL)
-        lib.dasi_retrieve_attrs(
-            self._cdata, ckey, self.__time, self.__offset, self.__length
-        )
+        lib.dasi_retrieve_attrs(self._cdata, ckey, self.__time, self.__offset, self.__length)
         ckey: FFI.CData = ffi.gc(ckey[0], lib.dasi_free_key)
         self.__key = Key(ckey)
 
         self.__data = bytearray(self.length)
-        lib.dasi_retrieve_read(
-            self._cdata, ffi.from_buffer(self.__data), self.__length
-        )
+        lib.dasi_retrieve_read(self._cdata, ffi.from_buffer(self.__data), self.__length)
 
     @property
     def key(self) -> Key:

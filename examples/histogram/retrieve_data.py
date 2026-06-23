@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 
-from helper import cmdline_args, plot_histogram
+from helper import cmdline_args, plot_histogram, setup_logging
 
 from pydasi import Dasi
+
+logger = logging.getLogger(__name__)
 
 
 def query_names(session: Dasi, query):
@@ -50,6 +53,8 @@ def retrieve_files(session: Dasi, query):
 
 
 def main():
+    setup_logging()
+
     args = cmdline_args()
 
     query = {
@@ -74,13 +79,13 @@ def main():
     for item in session.retrieve(query):
         name = item.key["Name"]
         ext = item.key["Type"]
-        print("--- [%s] ---" % name)
+        logger.info("--- [%s] ---", name)
         if ext == "mdoc":  # mdoc file
-            print("Content: %s" % item.data.decode())
+            logger.info("Content: %s", item.data.decode())
         elif ext == "tif":  # image file
             plot_histogram(item.data, name)
 
-    print("Finished!")
+    logger.info("Finished!")
 
 
 if __name__ == "__main__":

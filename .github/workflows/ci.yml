@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute base image reference
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "DEPS_IMAGE=ghcr.io/${owner}/dasi-build-deps:latest" >> "$GITHUB_ENV"
+
+      - name: Resolve DASI version
+        run: |
+          echo "DASI_VERSION=$(grep -oP 'project\(\s*dasi\s+VERSION\s+\K[0-9]+(\.[0-9]+)*' CMakeLists.txt)" >> "$GITHUB_ENV"
+
+      - name: Write compose .env defaults
+        run: |
+          cat > .devcontainer/.env << EOF
+          DASI_VERSION=${DASI_VERSION}
+          DEPS_IMAGE=${DEPS_IMAGE}
+          POSTGRES_DB=dasi
+          POSTGRES_USER=dasi
+          POSTGRES_PASSWORD=dasi
+          RUCIO_CFG_DATABASE_DEFAULT=postgresql://dasi:dasi@rucio-db/dasi
+          RUCIO_ACCOUNT=root
+          RUCIO_AUTH_TYPE=userpass
+          RUCIO_USERNAME=root
+          RUCIO_PASSWORD=secret
+          RUCIO_HOST=http://rucio-server
+          RUCIO_ENABLE_SSL=False
+          RUCIO_SERVER_TYPE=rest
+          RUCIO_LOG_LEVEL=DEBUG
+          RUCIO_HOSTNAME=localhost
+          MINIO_ROOT_USER=minio
+          MINIO_ROOT_PASSWORD=minio123
+          MINIO_REGION=us-east-1
+          MINIO_BUCKET=dasi
+          GLOBUS_DIR=./rucio/.globus
+          EOF
+
+      - name: Run tests
+        run: docker compose -f .devcontainer/docker-compose.yml run --rm --build test
+
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose -f .devcontainer/docker-compose.yml logs --no-color --timestamps
+
+      - name: Tear down compose stack
+        if: always()
+        run: docker compose -f .devcontainer/docker-compose.yml down --volumes --remove-orphans

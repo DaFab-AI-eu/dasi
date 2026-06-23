@@ -34,7 +34,7 @@ namespace dasi::tools {
 
 class DASISchema : public DASITool {
 public:  // methods
-    DASISchema(int argc, char** argv): DASITool(argc, argv) {
+    DASISchema(int argc, char** argv) : DASITool(argc, argv) {
         options_.push_back(
             new SimpleOption<bool>("query", "Prints out the query string(s) (defined in the schema file)."));
         options_.push_back(new SimpleOption<bool>(
@@ -84,7 +84,7 @@ void DASISchema::usage(const std::string& tool) const {
                        << "Examples:" << eckit::newl                        //
                        << "=========" << eckit::newl                        //
                        << eckit::newl                                       //
-                       << tool << " --config=dasi.yaml" << eckit::newl       //
+                       << tool << " --config=dasi.yml" << eckit::newl       //
                        << tool << " --query" << eckit::newl                 //
                        << tool << " --scan" << eckit::newl                  //
                        << tool << " --root" << eckit::newl                  //
