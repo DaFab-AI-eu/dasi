@@ -6,11 +6,10 @@ on:
     # Weekly rebuild (Mon 03:00 UTC) to pick up upstream security updates.
     - cron: '0 3 * * 1'
   push:
-    branches:
-      - main
     paths:
       - 'Dockerfile'
       - '.github/workflows/build-deps.yml'
+      - '.devcontainer/docker-compose.yml'
 
 concurrency:
   group: build-deps-${{ github.ref }}
