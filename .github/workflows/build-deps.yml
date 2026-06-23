@@ -52,5 +52,14 @@ jobs:
           target: build-dependencies
           push: true
           tags: ${{ env.DEPS_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=DASI build dependencies
+            org.opencontainers.image.description=Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI.
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=Apache-2.0
+            org.opencontainers.image.vendor=ECMWF
+            org.opencontainers.image.revision=${{ github.sha }}
+          annotations: |
+            org.opencontainers.image.description=Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI.
           cache-from: type=registry,ref=${{ env.DEPS_IMAGE }}
           cache-to: type=inline

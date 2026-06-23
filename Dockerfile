@@ -7,6 +7,12 @@ ARG DEPS_IMAGE=build-dependencies
 # =============================================================================
 FROM rockylinux/rockylinux:9.6 AS build-dependencies
 
+LABEL org.opencontainers.image.title="DASI build dependencies" \
+      org.opencontainers.image.description="Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI." \
+      org.opencontainers.image.source="https://github.com/ecmwf-projects/dasi" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.vendor="ECMWF"
+
 # Install build essentials and development libraries
 RUN set -ex; \
     dnf install -y dnf-plugins-core epel-release && \
