@@ -169,8 +169,6 @@ services:
         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
         - DASI_VERSION=${DASI_VERSION:-latest}
     depends_on:
-      rucio-server:
-        condition: service_healthy
       minio:
         condition: service_healthy
     env_file: .env
