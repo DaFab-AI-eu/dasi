@@ -124,7 +124,7 @@ COPY ./bundle/Linux.cmake .
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
-    sed -i "s/set(.DASI_VERSION.*)/set( DASI_VERSION ${DASI_VERSION} )/" CMakeLists.txt && \
+    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
     sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
