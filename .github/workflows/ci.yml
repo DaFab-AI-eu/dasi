@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -58,8 +59,8 @@ jobs:
           RUCIO_LOG_LEVEL=DEBUG
           RUCIO_HOSTNAME=localhost
           MINIO_ROOT_USER=minio
-          MINIO_ROOT_PASSWORD=minio123
-          MINIO_REGION=us-east-1
+          MINIO_ROOT_PASSWORD=minio1234
+          MINIO_REGION=eu-central-1
           MINIO_BUCKET=dasi
           GLOBUS_DIR=./rucio/.globus
           EOF
