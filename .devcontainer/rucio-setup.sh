@@ -10,7 +10,7 @@ ACCOUNT="${RUCIO_ACCOUNT:-root}"
 BUCKET="${MINIO_BUCKET:-rucio}"
 S3_ACCESS_KEY="${AWS_ACCESS_KEY_ID:-${MINIO_ROOT_USER:-minioadmin}}"
 S3_SECRET_KEY="${AWS_SECRET_ACCESS_KEY:-${MINIO_ROOT_PASSWORD:-minioadmin}}"
-MINIO_ENDPOINT="${MINIO_HOST:-http://minio:9000}"
+MINIO_ENDPOINT="${MINIO_HOST:-https://minio:9000}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT#http://}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT#https://}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT%/}"
@@ -89,7 +89,7 @@ _rucio rse protocol add "$RSE_NAME" \
     --prefix "/${BUCKET}/" \
     --impl rucio_s3boto3.Default \
     --domain-json '{"lan":{"read":1,"write":1,"delete":1},"wan":{"read":1,"write":1,"delete":1,"third_party_copy_read":1,"third_party_copy_write":1}}' \
-    --extended-attributes-json "{\"s3_access_key\":\"${S3_ACCESS_KEY}\",\"s3_secret_key\":\"${S3_SECRET_KEY}\",\"s3_endpoint_url\":\"${MINIO_HOST:-http://minio:9000}\"}"
+    --extended-attributes-json "{\"s3_access_key\":\"${S3_ACCESS_KEY}\",\"s3_secret_key\":\"${S3_SECRET_KEY}\",\"s3_endpoint_url\":\"${MINIO_HOST:-https://minio:9000}\"}"
 
 echo "rucio-setup: granting quota (10GB) for ${ACCOUNT} on ${RSE_NAME}..."
 _rucio account limit add "$ACCOUNT" --rse "$RSE_NAME" --bytes 10GB --locality local

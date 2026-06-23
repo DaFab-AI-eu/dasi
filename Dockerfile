@@ -117,7 +117,7 @@ RUN set -ex; \
 # =============================================================================
 FROM ${DEPS_IMAGE} AS dasi-builder
 
-ARG DASI_VERSION=0.2.9
+ARG DASI_VERSION=${DASI_VERSION:-latest}
 
 RUN echo "Building DASI Version: ${DASI_VERSION}"
 
@@ -140,15 +140,22 @@ RUN set -ex; \
 # =============================================================================
 # Tests DASI
 # =============================================================================
-FROM dasi-builder AS dasi-tester
+FROM ${DEPS_IMAGE} AS dasi-tester
+
+ARG DASI_VERSION=${DASI_VERSION:-latest}
+
+RUN echo "Testing DASI Version: ${DASI_VERSION}"
 
 WORKDIR /workspace
 
+COPY ./bundle/CMakeLists.txt .
+COPY ./bundle/Linux.cmake .
+
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
+    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
     sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
     sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake && \
-    rm -rf /tmp/build/dasi-bundle && \
     cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
     cmake --build /tmp/build/dasi-bundle --target all pydasi_develop
 
@@ -157,7 +164,7 @@ RUN set -ex; \
 # =============================================================================
 FROM rockylinux/rockylinux:9.6-minimal AS dasi-runtime
 
-ARG DASI_VERSION=0.2.9
+ARG DASI_VERSION=${DASI_VERSION:-latest}
 
 LABEL version="dasi:${DASI_VERSION}"
 

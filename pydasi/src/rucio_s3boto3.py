@@ -79,12 +79,30 @@ class Default(protocol.RSEProtocol):
         endpoint_url = ext.get("s3_endpoint_url") or os.environ.get("MINIO_HOST") or f"{scheme}://{hostname}:{port}"
         region_name = os.environ.get("MINIO_REGION") or os.environ.get("AWS_DEFAULT_REGION")
 
+        # TLS verification. The local dev MinIO serves HTTPS with a self-signed
+        # certificate, so verification is disabled by default for https
+        # endpoints. Set MINIO_VERIFY_TLS=true (or a CA bundle path) to enforce.
+        verify_env = os.environ.get("MINIO_VERIFY_TLS")
+        if verify_env is not None and verify_env.strip():
+            value = verify_env.strip()
+            if value.lower() in ("0", "false", "no", "off"):
+                verify = False
+            elif value.lower() in ("1", "true", "yes", "on"):
+                verify = True
+            else:
+                verify = value  # treat as a CA bundle path
+        elif endpoint_url.lower().startswith("https"):
+            verify = False
+        else:
+            verify = None
+
         # Defer boto3 client creation until a transfer is actually requested so
         # that PFN construction works even where boto3 is unavailable.
         self._s3_access_key = access_key
         self._s3_secret_key = secret_key
         self._s3_endpoint_url = endpoint_url
         self._s3_region_name = region_name
+        self._s3_verify = verify
         self._s3_client = None
 
         # Prefix convention is /<bucket>[/optional/root/prefix]/
@@ -117,6 +135,7 @@ class Default(protocol.RSEProtocol):
                 aws_access_key_id=self._s3_access_key,
                 aws_secret_access_key=self._s3_secret_key,
                 region_name=self._s3_region_name,
+                verify=self._s3_verify,
                 config=Config(signature_version="s3v4"),
             )
         return self._s3_client

@@ -78,7 +78,7 @@ services:
           - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
           - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
           - AWS_DEFAULT_REGION=${MINIO_REGION}
-          - MINIO_HOST=http://minio:9000
+          - MINIO_HOST=https://minio:9000
           - MINIO_BUCKET=${MINIO_BUCKET}
           - MINIO_REGION=${MINIO_REGION}
           - PYTHONPATH=/workspace/dasi/pydasi/src
@@ -88,7 +88,9 @@ services:
           - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
           - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
 
-  # --- 5. MinIO S3-compatible object storage ---
+  # --- 5. MinIO S3-compatible object storage (TLS) ---
+  # Certs in ./minio/certs make MinIO serve HTTPS on :9000. eckit's S3 client
+  # forces HTTPS (with cert verification disabled), so TLS is required.
   minio:
       image: minio/minio:latest
       command: server /data --console-address ":9001"
@@ -96,13 +98,18 @@ services:
           MINIO_ROOT_USER: ${MINIO_ROOT_USER}
           MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
           MINIO_REGION: ${MINIO_REGION}
+          # Point "local" alias at the HTTPS endpoint for the healthcheck
+          MC_HOST_local: https://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000
       ports:
-          - "9000:9000"   # S3 API
-          - "9001:9001"   # web console  →  http://localhost:9001
+          - "9000:9000"   # S3 API (HTTPS)
+          - "9001:9001"   # web console  →  https://localhost:9001
       volumes:
           - minio-data:/data
+          # Self-signed cert/key (public.crt, private.key) enable TLS.
+          - ./minio/certs:/root/.minio/certs:ro
       healthcheck:
-          test: ["CMD", "mc", "ready", "local"]
+          # --insecure: self-signed cert is not in the trust store.
+          test: ["CMD", "mc", "--insecure", "ready", "local"]
           interval: 5s
           timeout: 5s
           retries: 5
