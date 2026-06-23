@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - feature/**
+      - bugfix/**
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Write compose .env defaults
+        run: |
+          cat > .devcontainer/.env << EOF
+          DASI_VERSION=ci
+          POSTGRES_DB=dasi
+          POSTGRES_USER=dasi
+          POSTGRES_PASSWORD=dasi
+          RUCIO_CFG_DATABASE_DEFAULT=postgresql://dasi:dasi@rucio-db/dasi
+          RUCIO_ACCOUNT=root
+          RUCIO_AUTH_TYPE=userpass
+          RUCIO_USERNAME=root
+          RUCIO_PASSWORD=secret
+          RUCIO_HOST=http://rucio-server
+          RUCIO_ENABLE_SSL=False
+          RUCIO_SERVER_TYPE=rest
+          RUCIO_LOG_LEVEL=DEBUG
+          RUCIO_HOSTNAME=localhost
+          MINIO_ROOT_USER=minio
+          MINIO_ROOT_PASSWORD=minio123
+          MINIO_REGION=us-east-1
+          MINIO_BUCKET=dasi
+          GLOBUS_DIR=./rucio/.globus
+          EOF
+
+      - name: Build test image
+        run: docker compose -f .devcontainer/docker-compose.yml build test
