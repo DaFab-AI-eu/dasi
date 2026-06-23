@@ -64,5 +64,9 @@ jobs:
           GLOBUS_DIR=./rucio/.globus
           EOF
 
-      - name: Build test image
-        run: docker compose -f .devcontainer/docker-compose.yml build test
+      - name: Run tests
+        run: docker compose -f .devcontainer/docker-compose.yml run --rm --build test
+
+      - name: Tear down compose stack
+        if: always()
+        run: docker compose -f .devcontainer/docker-compose.yml down --volumes --remove-orphans
