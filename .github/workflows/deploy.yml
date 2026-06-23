@@ -42,10 +42,16 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Compute base image reference
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "DEPS_IMAGE=ghcr.io/${owner}/dasi-build-deps:latest" >> "$GITHUB_ENV"
+
       - name: Write compose .env
         run: |
           cat > .devcontainer/.env << EOF
           DASI_VERSION=${{ env.DASI_VERSION }}
+          DEPS_IMAGE=${{ env.DEPS_IMAGE }}
           EOF
 
       - name: Build runtime image via docker compose

@@ -14,6 +14,7 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   test:
@@ -24,6 +25,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute base image reference
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "DEPS_IMAGE=ghcr.io/${owner}/dasi-build-deps:latest" >> "$GITHUB_ENV"
+
       - name: Resolve DASI version
         run: |
           echo "DASI_VERSION=$(grep -oP 'project\(\s*dasi\s+VERSION\s+\K[0-9]+(\.[0-9]+)*' CMakeLists.txt)" >> "$GITHUB_ENV"
@@ -32,6 +45,7 @@ jobs:
         run: |
           cat > .devcontainer/.env << EOF
           DASI_VERSION=${DASI_VERSION}
+          DEPS_IMAGE=${DEPS_IMAGE}
           POSTGRES_DB=dasi
           POSTGRES_USER=dasi
           POSTGRES_PASSWORD=dasi
