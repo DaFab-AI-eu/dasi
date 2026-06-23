@@ -5,6 +5,13 @@ Data Access and Storage Interface (DASI)
     :target: https://dasi.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://github.com/DaFab-AI-eu/dasi/actions/workflows/build-deps.yml/badge.svg
+   :target: https://github.com/DaFab-AI-eu/dasi/actions/workflows/build-deps.yml
+   :alt: Build Deps Image
+
+.. image:: https://github.com/DaFab-AI-eu/dasi/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/DaFab-AI-eu/dasi/actions/workflows/ci.yml
+   :alt: CI
 
 **DASI** is a metadata-driven data store. It is a semantic interface for data, where the data is indexed and uniquely identified by sets of scientifically-meaningful metadata keys.
 DASI is modular and is compatible with multiple backends (i.e., object stores or POSIX) through diverse frontends (Python, C++, C).
