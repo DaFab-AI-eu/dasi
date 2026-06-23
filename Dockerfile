@@ -1,3 +1,7 @@
+# DEPS_IMAGE selects the base for the downstream stages.
+# CI overrides it with a prebuilt GHCR image (e.g. ghcr.io/<owner>/dasi-build-deps:latest)
+ARG DEPS_IMAGE=build-dependencies
+
 # =============================================================================
 # Base image with compilers, tools, and pre-built dependencies (ecbuild, libaec, aws-sdk)
 # =============================================================================
@@ -78,7 +82,7 @@ RUN mkdir -p /root/.rucio && chmod 700 /root/.rucio
 # =============================================================================
 # Development environment for devcontainer
 # =============================================================================
-FROM build-dependencies AS dev-env
+FROM ${DEPS_IMAGE} AS dev-env
 
 # Configure shell environment for interactive use
 RUN echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
@@ -111,7 +115,7 @@ RUN set -ex; \
 # =============================================================================
 # Builds DASI
 # =============================================================================
-FROM build-dependencies AS dasi-builder
+FROM ${DEPS_IMAGE} AS dasi-builder
 
 ARG DASI_VERSION=0.2.9
 
