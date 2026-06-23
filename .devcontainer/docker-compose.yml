@@ -122,7 +122,6 @@ services:
     env_file: .env
 
     environment:
-        - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
         - RUCIO_CLIENT_MODE=True
         - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
         - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
@@ -135,7 +134,6 @@ services:
         - AWS_DEFAULT_REGION=${MINIO_REGION}
 
     volumes:
-      - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
       - ~/.cmake:/workspace/.cmake:ro
       - ..:/workspace/dasi:cached
       # Canonical path used by rucio library get_config_dirs()
@@ -166,7 +164,7 @@ services:
       dockerfile: Dockerfile
       target: dasi-tester
       args:
-        - DASI_VERSION=0.2.9
+        - DASI_VERSION=${DASI_VERSION:-latest}
     depends_on:
       rucio-server:
         condition: service_healthy
