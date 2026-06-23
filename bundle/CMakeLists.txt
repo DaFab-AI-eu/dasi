@@ -16,7 +16,7 @@ cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 
 find_package( ecbuild 3.12 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
 
-set( DASI_VERSION 0.2.9 )
+set( DASI_VERSION 0.3.0 )
 
 project( dasi-bundle VERSION ${DASI_VERSION} LANGUAGES C CXX )
 
