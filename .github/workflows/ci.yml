@@ -8,9 +8,17 @@ on:
       - feature/**
       - bugfix/**
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -19,7 +27,7 @@ jobs:
       - name: Write compose .env defaults
         run: |
           cat > .devcontainer/.env << EOF
-          DASI_VERSION=ci
+          DASI_VERSION=${GITHUB_REF_NAME#v}
           POSTGRES_DB=dasi
           POSTGRES_USER=dasi
           POSTGRES_PASSWORD=dasi

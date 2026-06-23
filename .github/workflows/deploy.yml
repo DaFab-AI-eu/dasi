@@ -5,15 +5,19 @@ on:
     tags:
       - 'v*'
 
-# Defines two environments variables
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    # Sets the permissions granted to the GITHUB_TOKEN
+    timeout-minutes: 60
+
     permissions:
       contents: read
       packages: write
@@ -49,7 +53,9 @@ jobs:
 
       - name: Tag and push to GHCR
         run: |
+          set -euo pipefail
           while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
             docker tag "dasi:${{ env.DASI_VERSION }}" "$tag"
             docker push "$tag"
           done <<< "${{ steps.meta.outputs.tags }}"
