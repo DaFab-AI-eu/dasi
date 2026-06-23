@@ -1,4 +1,4 @@
-name: Create and publish DASI Docker image
+name: CD
 
 on:
   push:
