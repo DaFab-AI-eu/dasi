@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import NamedTuple
+
 from pydasi.backend import FFI, ffi, lib, ffi_decode, new_list
 from .key import Key
 from .query import Query
@@ -20,65 +22,52 @@ from logging import getLogger as _getLogger
 logger = _getLogger(__name__)
 
 
-class List:
-    def __init__(self, dasi: FFI.CData, query):
-        logger.debug("Initialize List...")
+class ListItem(NamedTuple):
+    """A single entry of a listing, independent of the iterator that produced it."""
 
-        self.__key = Key()
-        self.__uri = ffi.new("const char **", ffi.NULL)
-        self.__time = ffi.new("dasi_time_t *", 0)
-        self.__offset = ffi.new("long *", 0)
-        self.__length = ffi.new("long *", 0)
-        self._cdata = new_list(dasi, Query(query).cdata)
+    key: Key
+    uri: str
+    timestamp: int
+    offset: int
+    length: int
 
     def __str__(self) -> str:
         return "{}, uri: {}, time: {}, offset: {}, length: {}".format(
             self.key, self.uri, self.timestamp, self.offset, self.length
         )
 
+
+class List:
+    def __init__(self, dasi: FFI.CData, query):
+        logger.debug("Initialize List...")
+
+        self._cdata = new_list(dasi, Query(query).cdata)
+
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> ListItem:
         if lib.dasi_list_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
             raise StopIteration
-        self.__read()
-        return self
+        return self.__read()
 
     def __len__(self) -> int:
         logger.debug("not implemented in Dasi C lib!")
         return 0
 
-    def __read(self):
+    def __read(self) -> ListItem:
         ckey = ffi.new("dasi_key_t **", ffi.NULL)
-        lib.dasi_list_attrs(
-            self._cdata,
-            ckey,
-            self.__time,
-            self.__uri,
-            self.__offset,
-            self.__length,
+        uri = ffi.new("const char **", ffi.NULL)
+        time = ffi.new("dasi_time_t *", 0)
+        offset = ffi.new("long *", 0)
+        length = ffi.new("long *", 0)
+
+        lib.dasi_list_attrs(self._cdata, ckey, time, uri, offset, length)
+
+        return ListItem(
+            key=Key(ffi.gc(ckey[0], lib.dasi_free_key)),
+            uri=ffi_decode(uri[0]) if uri[0] != ffi.NULL else "unknown",
+            timestamp=time[0],
+            offset=offset[0],
+            length=length[0],
         )
-        ckey: FFI.CData = ffi.gc(ckey[0], lib.dasi_free_key)
-        self.__key = Key(ckey)
-
-    @property
-    def key(self) -> Key:
-        return self.__key
-
-    @property
-    def uri(self) -> str:
-        val: FFI.CData = self.__uri[0]
-        return ffi_decode(val) if val != ffi.NULL else "unknown"
-
-    @property
-    def timestamp(self) -> int:
-        return self.__time[0]
-
-    @property
-    def offset(self) -> int:
-        return self.__offset[0]
-
-    @property
-    def length(self) -> int:
-        return self.__length[0]
