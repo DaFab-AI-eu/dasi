@@ -35,12 +35,15 @@
                 "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
             },
             "extensions": [
-                "ms-python.python",
-                "ms-python.vscode-pylance",
-                "ms-python.debugpy",
-                "ms-python.pytest-adapter",
                 "ms-vscode.cpptools",
-                "ms-vscode.cmake-tools"
+                "ms-vscode.cpp-devtools",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "ms-python.isort",
+                "ms-python.black-formatter",
+                "ms-python.vscode-pylance",
+                "ms-python.pytest-adapter",
+                "ms-python.debugpy"
             ]
         }
     }

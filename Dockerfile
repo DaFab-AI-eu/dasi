@@ -39,7 +39,7 @@ RUN set -ex; \
     ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
     python -m pip install -q --upgrade pip setuptools wheel gcovr && \
-    python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
+    python -m pip install -q --no-cache-dir Cython boto3 "rucio-clients==40.2.0"
 
 # Install ecbuild
 ADD --keep-git-dir=true https://github.com/ecmwf/ecbuild.git#3.12.0 /tmp/ecbuild
