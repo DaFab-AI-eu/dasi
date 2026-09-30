@@ -21,6 +21,8 @@
 
 #include "dasi/api/detail/Generators.h"
 
+#include <string>
+
 namespace dasi {
 
 //-------------------------------------------------------------------------------------------------

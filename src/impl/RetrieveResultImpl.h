@@ -5,10 +5,14 @@
 #pragma once
 
 #include "dasi/api/detail/Generators.h"
+#include "dasi/api/detail/ListDetail.h"
 #include "dasi/api/detail/RetrieveDetail.h"
+#include "fdb5/api/helpers/ListElement.h"
 #include "fdb5/api/helpers/ListIterator.h"
 
+#include <cstddef>
 #include <memory>
+#include <vector>
 
 namespace eckit {
 class DataHandle;
@@ -26,7 +30,7 @@ public:
     using const_iterator = vector_type::const_iterator;
 
 public:  // methods
-    explicit RetrieveResultImpl(fdb5::ListIterator&& iter);
+    explicit RetrieveResultImpl(fdb5::ListIterator& iter);
 
     // Functions to implement iteration in RetrieveResult
 
@@ -56,7 +60,7 @@ private:  // members
 
     vector_type::const_iterator iter_;
     dasi::ListElement           dasiElement_;
-    bool                        done_;
+    bool                        done_ {false};
 };
 
 //----------------------------------------------------------------------------------------------------------------------

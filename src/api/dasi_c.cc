@@ -12,12 +12,12 @@
 #include "dasi/api/Dasi.h"
 #include "eckit/exception/Exceptions.h"
 #include "eckit/runtime/Main.h"
-#include "eckit/utils/Optional.h"
 #include "lib/dasi_version.h"
 
-#include <time.h>
+// #include <time.h>
 
 #include <functional>
+#include <optional>
 
 extern "C" {
 
@@ -71,7 +71,7 @@ struct dasi_retrieve_t {
     dasi::RetrieveResult                 retrieve;
     dasi::RetrieveResult::const_iterator iterator;
     std::unique_ptr<eckit::DataHandle>   dh;
-    eckit::Optional<eckit::AutoClose>    closer;
+    std::optional<eckit::AutoClose>      closer;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -5,10 +5,14 @@
 #pragma once
 
 #include "dasi/api/Dasi.h"
+#include "eckit/exception/Exceptions.h"
 #include "eckit/filesystem/PathName.h"
+#include "eckit/log/CodeLocation.h"
 #include "eckit/runtime/Tool.h"
-#include "eckit/utils/Optional.h"
 
+#include <optional>
+#include <sstream>
+#include <string>
 #include <vector>
 
 namespace eckit::option {
@@ -56,7 +60,7 @@ protected:  // members
 
     eckit::PathName configPath_;
 
-    eckit::Optional<dasi::Dasi> dasi_;
+    std::optional<dasi::Dasi> dasi_;
 };
 
 //-------------------------------------------------------------------------------------------------

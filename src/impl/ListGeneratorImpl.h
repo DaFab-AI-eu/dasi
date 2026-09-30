@@ -6,6 +6,7 @@
 
 #include "dasi/api/detail/Generators.h"
 #include "dasi/api/detail/ListDetail.h"
+#include "fdb5/api/helpers/ListElement.h"
 #include "fdb5/api/helpers/ListIterator.h"
 
 namespace dasi {

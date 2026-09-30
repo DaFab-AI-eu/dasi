@@ -23,20 +23,20 @@
 #include "dasi/api/detail/WipeDetail.h"
 #include "fdb5/api/helpers/WipeIterator.h"
 
+#include <utility>
+
 namespace dasi {
 
 //-------------------------------------------------------------------------------------------------
 
 class WipeGeneratorImpl : public APIGeneratorImpl<WipeElement> {
 public:  // methods
-    explicit WipeGeneratorImpl(fdb5::WipeIterator&& iter) : APIGeneratorImpl<WipeElement>(), iter_(std::move(iter)) {
-        WipeGeneratorImpl::next();
-    }
+    explicit WipeGeneratorImpl(fdb5::WipeIterator&& iter) : iter_(std::move(iter)) { WipeGeneratorImpl::next(); }
 
     void next() override {
         if (!done_) {
             if (iter_.next(fdb5Element_)) {
-                dasiElement_ = fdb5Element_;
+                dasiElement_ = fdb5Element_.msg();
             } else {
                 done_ = true;
             }
@@ -58,7 +58,7 @@ private:  // members
     fdb5::WipeIterator iter_;
 
     fdb5::WipeElement fdb5Element_;
-    dasi::WipeElement dasiElement_;
+    WipeElement       dasiElement_;
 };
 
 //-------------------------------------------------------------------------------------------------

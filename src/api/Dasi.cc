@@ -10,13 +10,24 @@
 
 #include "dasi/api/Dasi.h"
 
+#include "dasi/api/Key.h"
+#include "dasi/api/Query.h"
+#include "dasi/api/detail/ListDetail.h"
+#include "dasi/api/detail/PolicyDetail.h"
+#include "dasi/api/detail/PurgeDetail.h"
+#include "dasi/api/detail/RetrieveDetail.h"
+#include "dasi/api/detail/WipeDetail.h"
 #include "dasi/lib/LibDasi.h"
+#include "eckit/config/LocalConfiguration.h"
 #include "eckit/config/YAMLConfiguration.h"
 #include "eckit/exception/Exceptions.h"
+#include "eckit/io/DataHandle.h"
+#include "eckit/log/CodeLocation.h"
 #include "eckit/log/Log.h"
 #include "eckit/runtime/Main.h"
 #include "eckit/utils/Tokenizer.h"
 #include "fdb5/api/FDB.h"
+#include "fdb5/api/helpers/ControlIterator.h"
 #include "fdb5/api/helpers/FDBToolRequest.h"
 #include "fdb5/config/Config.h"
 #include "fdb5/rules/Schema.h"
@@ -27,7 +38,13 @@
 #include "impl/WipeGeneratorImpl.h"
 #include "metkit/mars/MarsRequest.h"
 
+#include <cstddef>
 #include <memory>
+#include <ostream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace dasi {
 
@@ -122,7 +139,7 @@ class DasiImpl {
 
 public:  // methods
     DasiImpl(const char* dasi_config, const char* application_config)
-        : mainHelper_(), fdb_(construct_config(dasi_config, application_config)) { }
+        : fdb_(construct_config(dasi_config, application_config)) { }
 
     void archive(const Key& key, const void* data, size_t length) {
         fdb5::Key fdb_key;
@@ -151,7 +168,7 @@ public:  // methods
 
     RetrieveResult retrieve(const Query& query) {
         auto&& iter = fdb_.inspect(queryToMarsRequest(query));
-        return RetrieveResult {std::make_unique<RetrieveResultImpl>(std::move(iter))};
+        return RetrieveResult {std::make_unique<RetrieveResultImpl>(iter)};
     }
 
     void flush() { fdb_.flush(); }
@@ -188,11 +205,10 @@ public:  // methods
 
             auto&& iter = fdb_.control(fdb5::FDBToolRequest(queryToMarsRequest(query)), action, identifiers);
             return PolicyGenerator(std::make_unique<PolicyStatusGeneratorImpl>(std::move(iter)));
-
-        } else {
-            /// @todo implementation for anything other than locking
-            NOTIMP;
         }
+
+        /// @todo implementation for anything other than locking
+        NOTIMP;
     }
 
     PolicyGenerator queryPolicy(const Query& query, const std::string& name = "") {

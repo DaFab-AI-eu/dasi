@@ -2,8 +2,16 @@
 #include "dasi/api/Key.h"
 
 #include "eckit/exception/Exceptions.h"
+#include "eckit/log/CodeLocation.h"
 #include "eckit/types/Types.h"
 #include "eckit/utils/StringTools.h"
+
+#include <initializer_list>
+#include <ostream>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
 
 namespace dasi {
 
@@ -12,7 +20,7 @@ namespace dasi {
 Key::Key(std::initializer_list<std::pair<const std::string, std::string>> l) : values_(l) { }
 
 Key::Key(const std::string& strKey) {
-    // TODO: Introduce a more robust parser
+    /// TODO: Introduce a more robust parser
     for (const std::string& bit : eckit::StringTools::split(",", strKey)) {
         auto kvs = eckit::StringTools::split("=", bit);
         if (kvs.size() != 2) { throw eckit::UserError("Invalid key supplied", Here()); }
@@ -56,23 +64,23 @@ Key::map_type::size_type Key::size() const {
 }
 
 const Key::value_type& Key::get(const std::string& keyword) const {
-    auto it = values_.find(keyword);
-    if (it == values_.end()) {
+    auto iter = values_.find(keyword);
+    if (iter == values_.end()) {
         std::ostringstream ss;
         ss << keyword << " not found in Key";
         throw eckit::UserError(ss.str(), Here());
     }
-    return it->second;
+    return iter->second;
 }
 
 const Key::value_type& Key::get(const std::string_view& keyword) const {
-    auto it = values_.find(keyword);
-    if (it == values_.end()) {
+    auto iter = values_.find(keyword);
+    if (iter == values_.end()) {
         std::ostringstream ss;
         ss << keyword << " not found in Key";
         throw eckit::UserError(ss.str(), Here());
     }
-    return it->second;
+    return iter->second;
 }
 
 const Key::value_type& Key::get(const char* keyword) const {
@@ -80,13 +88,13 @@ const Key::value_type& Key::get(const char* keyword) const {
 }
 
 void Key::erase(const std::string& k) {
-    auto it = values_.find(k);
-    if (it != values_.end()) { values_.erase(it); }
+    auto iter = values_.find(k);
+    if (iter != values_.end()) { values_.erase(iter); }
 }
 
 void Key::erase(const std::string_view& k) {
-    auto it = values_.find(k);
-    if (it != values_.end()) { values_.erase(it); }
+    auto iter = values_.find(k);
+    if (iter != values_.end()) { values_.erase(iter); }
 }
 
 void Key::erase(const char* k) {

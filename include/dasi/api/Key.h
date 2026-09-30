@@ -5,6 +5,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <iosfwd>
 #include <map>
 #include <string>
 #include <string_view>
@@ -25,8 +26,7 @@ public:
     /// @note use of transparent comparator --> allow lookup with std::string_view as key
     using map_type = std::map<std::string, value_type, std::less<>>;
 
-public: // methods
-
+public:  // methods
     Key() = default;
     Key(std::initializer_list<std::pair<const std::string, std::string>>);
     explicit Key(const std::string& strKey);
@@ -34,23 +34,23 @@ public: // methods
     /** Is there a value corresponding to the specified key?
      * @param name The key to look up the corresponding value
      */
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool has(const char* name) const;
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool has(const std::string_view& name) const;
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool has(const std::string& name) const;
 
     /*
      ** Comparison operators (for use in containers, etc.)
      */
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool operator<(const Key& rhs) const;
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool operator==(const Key& rhs) const;
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool operator!=(const Key& rhs) const;
-    [[ nodiscard ]]
+    [[nodiscard]]
     bool operator>(const Key& rhs) const;
 
     /** Set the value corresponding to a specified key
@@ -81,23 +81,20 @@ public: // methods
     /** Erase all key:value pairs stored */
     void clear();
 
-private: // methods
-
+private:  // methods
     /// TODO: It would be nice to have an elegant custom formatting
     void print(std::ostream& s) const;
 
-private: // friends
-
+private:  // friends
     friend std::ostream& operator<<(std::ostream& s, const Key& k) {
         k.print(s);
         return s;
     }
 
-private: // members
-
+private:  // members
     map_type values_;
 };
 
 //-------------------------------------------------------------------------------------------------
 
-} // namespace dasi
+}  // namespace dasi

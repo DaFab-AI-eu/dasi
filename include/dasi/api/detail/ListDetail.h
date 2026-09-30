@@ -7,6 +7,11 @@
 #include "dasi/api/Key.h"
 #include "dasi/api/detail/Generators.h"
 #include "eckit/filesystem/URI.h"
+#include "eckit/io/Length.h"
+#include "eckit/io/Offset.h"
+
+#include <ctime>
+#include <ostream>
 
 namespace dasi {
 
@@ -18,13 +23,13 @@ struct DataLocation {
     eckit::Length length;
 
 private:  // members
-    friend std::ostream& operator<<(std::ostream& s, const DataLocation& loc) {
-        loc.print(s);
-        return s;
+    friend std::ostream& operator<<(std::ostream& out, const DataLocation& loc) {
+        loc.print(out);
+        return out;
     };
 
 public:  // methods
-    void print(std::ostream& s) const;
+    void print(std::ostream& out) const;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -32,16 +37,16 @@ public:  // methods
 struct ListElement {
     Key          key;
     DataLocation location;
-    time_t       timestamp;
+    time_t       timestamp {0};
 
 private:  // members
-    friend std::ostream& operator<<(std::ostream& s, const ListElement& elem) {
-        elem.print(s);
-        return s;
+    friend std::ostream& operator<<(std::ostream& out, const ListElement& elem) {
+        elem.print(out);
+        return out;
     };
 
 public:  // methods
-    void print(std::ostream& s, bool location = false) const;
+    void print(std::ostream& out, bool location = false) const;
 };
 
 //-------------------------------------------------------------------------------------------------
