@@ -1,118 +1,118 @@
 name: dasi
 
 services:
-
   # --- 1. Database Backend ---
   rucio-db:
-      image: postgres:14-alpine
-      environment:
-          POSTGRES_DB: ${POSTGRES_DB}
-          POSTGRES_USER: ${POSTGRES_USER}
-          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      ports:
-          - "5432:5432"
-      volumes:
-          - ruciodb:/var/lib/postgresql/data
-      healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-          interval: 5s
-          timeout: 5s
-          retries: 5
+    image: postgres:14-alpine
+    # env_file: dev.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - ruciodb:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # --- 2. Rucio Database Initializer ---
   # This service uses the official rucio-init image and runs only once.
   rucio-init:
-      image: rucio/rucio-init:release-40.2.0
-      entrypoint: ["/bin/bash"]
-      restart: "no"
-      depends_on:
-          rucio-db:
-              condition: service_healthy
-      command: ["/usr/local/bin/rucio-init-wrapper.sh"]
-      environment:
-          - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
-          - RUCIO_BOOTSTRAP=True
-          - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
-          - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
-          - RUCIO_USERNAME=${RUCIO_USERNAME}
-          - RUCIO_PASSWORD=${RUCIO_PASSWORD}
-          - RUCIO_HOST=${RUCIO_HOST}
-      volumes:
-          - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
-          - ./rucio-init-wrapper.sh:/usr/local/bin/rucio-init-wrapper.sh:ro
-          - rucioinitstate:/var/lib/rucio-init
+    image: rucio/rucio-init:release-40.2.0
+    entrypoint: ['/bin/bash']
+    # env_file: dev.env
+    restart: 'no'
+    depends_on:
+      rucio-db:
+        condition: service_healthy
+    command: ['/usr/local/bin/rucio-init-wrapper.sh']
+    environment:
+      - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
+      - RUCIO_BOOTSTRAP=True
+      - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+      - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+      - RUCIO_USERNAME=${RUCIO_USERNAME}
+      - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+      - RUCIO_HOST=${RUCIO_HOST}
+    volumes:
+      - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
+      - ./rucio-init-wrapper.sh:/usr/local/bin/rucio-init-wrapper.sh:ro
+      - rucioinitstate:/var/lib/rucio-init
 
   # --- 3. The Rucio Server ---
   rucio-server:
-      image: rucio/rucio-server:release-40.2.0
-      ports:
-          - "80:80"
-          - "443:443"
-      depends_on:
-          rucio-db:
-              condition: service_healthy
-          rucio-init:
-              condition: service_completed_successfully
-
-      healthcheck:
-          test: ["CMD-SHELL", "curl -sf http://localhost:80/ping || exit 1"]
-          interval: 10s
-          timeout: 5s
-          retries: 12
-
-      environment:
-          # Tell the server how to reach the DB
-          - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
-          # Basic configuration variables
-          - RUCIO_ENABLE_SSL=${RUCIO_ENABLE_SSL}
-          - RUCIO_SERVER_TYPE=${RUCIO_SERVER_TYPE}
-          - RUCIO_LOG_LEVEL=${RUCIO_LOG_LEVEL}
-          # Allow the server to know its external address if needed
-          - RUCIO_HOSTNAME=${RUCIO_HOSTNAME}
-          # Auth configuration for admin operations
-          - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
-          - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
-          - RUCIO_USERNAME=${RUCIO_USERNAME}
-          - RUCIO_PASSWORD=${RUCIO_PASSWORD}
-          # MinIO S3 credentials for server-side PFN construction
-          - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
-          - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
-          - AWS_DEFAULT_REGION=${MINIO_REGION}
-          - MINIO_HOST=https://minio:9000
-          - MINIO_BUCKET=${MINIO_BUCKET}
-          - MINIO_REGION=${MINIO_REGION}
-          - PYTHONPATH=/workspace/dasi/pydasi/src
-      volumes:
-          - ../pydasi/src:/workspace/dasi/pydasi/src:ro
-          - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
-          - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
-          - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
+    image: rucio/rucio-server:release-40.2.0
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      rucio-db:
+        condition: service_healthy
+      rucio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:80/ping || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # env_file: dev.env
+    environment:
+      # Tell the server how to reach the DB
+      - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT}
+      # Basic configuration variables
+      - RUCIO_ENABLE_SSL=${RUCIO_ENABLE_SSL}
+      - RUCIO_SERVER_TYPE=${RUCIO_SERVER_TYPE}
+      - RUCIO_LOG_LEVEL=${RUCIO_LOG_LEVEL}
+      # Allow the server to know its external address if needed
+      - RUCIO_HOSTNAME=${RUCIO_HOSTNAME}
+      # Auth configuration for admin operations
+      - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+      - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+      - RUCIO_USERNAME=${RUCIO_USERNAME}
+      - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+      # MinIO S3 credentials for server-side PFN construction
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_DEFAULT_REGION=${MINIO_REGION}
+      - MINIO_HOST=https://minio:9000
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_REGION=${MINIO_REGION}
+      - PYTHONPATH=/workspace/dasi/pydasi/src
+    volumes:
+      - ../pydasi/src:/workspace/dasi/pydasi/src:ro
+      - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
+      - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
+      - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
 
   # --- 5. MinIO S3-compatible object storage (TLS) ---
   # Certs in ./minio/certs make MinIO serve HTTPS on :9000. eckit's S3 client
   # forces HTTPS (with cert verification disabled), so TLS is required.
   minio:
-      image: minio/minio:latest
-      command: server /data --console-address ":9001"
-      environment:
-          MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-          MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-          MINIO_REGION: ${MINIO_REGION}
-          # Point "local" alias at the HTTPS endpoint for the healthcheck
-          MC_HOST_local: https://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000
-      ports:
-          - "9000:9000"   # S3 API (HTTPS)
-          - "9001:9001"   # web console  →  https://localhost:9001
-      volumes:
-          - minio-data:/data
-          # Self-signed cert/key (public.crt, private.key) enable TLS.
-          - ./minio/certs:/root/.minio/certs:ro
-      healthcheck:
-          # --insecure: self-signed cert is not in the trust store.
-          test: ["CMD", "mc", "--insecure", "ready", "local"]
-          interval: 5s
-          timeout: 5s
-          retries: 5
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_REGION: ${MINIO_REGION}
+      # Point "local" alias at the HTTPS endpoint for the healthcheck
+      MC_HOST_local: https://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000
+    ports:
+      - '9000:9000' # S3 API (HTTPS)
+      - '9001:9001' # web console  →  https://localhost:9001
+    volumes:
+      - minio-data:/data
+      # Self-signed cert/key (public.crt, private.key) enable TLS.
+      - ./minio/certs:/root/.minio/certs:ro
+    healthcheck:
+      # --insecure: self-signed cert is not in the trust store.
+      test: ['CMD', 'mc', '--insecure', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   dasi-dev:
     build:
@@ -122,23 +122,23 @@ services:
       args:
         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
         - DASI_VERSION=${DASI_VERSION:-0.3.1}
-    env_file: dev.env
+    # env_file: dev.env
     depends_on:
-        rucio-server:
-            condition: service_healthy
-        minio:
-            condition: service_healthy
+      rucio-server:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
-        - RUCIO_CLIENT_MODE=True
-        - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
-        - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
-        - RUCIO_USERNAME=${RUCIO_USERNAME}
-        - RUCIO_PASSWORD=${RUCIO_PASSWORD}
-        - RUCIO_HOST=${RUCIO_HOST}
-        # MinIO S3 credentials (match MINIO_ROOT_USER/MINIO_ROOT_PASSWORD)
-        - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
-        - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
-        - AWS_DEFAULT_REGION=${MINIO_REGION}
+      - RUCIO_CLIENT_MODE=True
+      - RUCIO_ACCOUNT=${RUCIO_ACCOUNT}
+      - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE}
+      - RUCIO_USERNAME=${RUCIO_USERNAME}
+      - RUCIO_PASSWORD=${RUCIO_PASSWORD}
+      - RUCIO_HOST=${RUCIO_HOST}
+      # MinIO S3 credentials (match MINIO_ROOT_USER/MINIO_ROOT_PASSWORD)
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_DEFAULT_REGION=${MINIO_REGION}
     volumes:
       - ~/.cmake:/workspace/.cmake:ro
       - ..:/workspace/dasi:cached
@@ -151,55 +151,54 @@ services:
       - rucio-storage:/rucio-storage
     # use a ptrace-based debugger C++
     cap_add:
-        - SYS_PTRACE
+      - SYS_PTRACE
     security_opt:
-        - seccomp:unconfined
+      - seccomp:unconfined
     # allow core dumps
     privileged: true
     ulimits:
-        core: -1
+      core: -1
     stdin_open: true
     tty: true
 
-  test:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: dasi-tester
-      args:
-        - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
-        - DASI_VERSION=${DASI_VERSION:-0.3.1}
-    env_file: dev.env
-    depends_on:
-      minio:
-        condition: service_healthy
-    command: >
-      bash -lc "
-        set -ex;
-        ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
-        cmake --build /tmp/build/dasi-bundle --target pydasi_test
-      "
+#   test:
+#     build:
+#       context: ..
+#       dockerfile: Dockerfile
+#       target: dasi-tester
+#       args:
+#         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
+#         - DASI_VERSION=${DASI_VERSION:-0.3.1}
+    # env_file: dev.env
+#     depends_on:
+#       minio:
+#         condition: service_healthy
+#     command: >
+#       bash -lc "
+#         set -ex;
+#         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
+#         cmake --build /tmp/build/dasi-bundle --target pydasi_test
+#       "
 
-  runtime:
-    image: dasi:${DASI_VERSION:-0.3.1}
-    env_file: dev.env
-    build:
-      context: ..
-      dockerfile: Dockerfile
-      target: dasi-runtime
-      args:
-        - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
-        - DASI_VERSION=${DASI_VERSION:-0.3.1}
-    command: >
-      bash -lc "
-        echo 'DASI Lib version:' $(dasi version) &&
-        python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
-        python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
-      "
-
+#   runtime:
+#     image: dasi:${DASI_VERSION:-0.3.1}
+    # env_file: dev.env
+#     build:
+#       context: ..
+#       dockerfile: Dockerfile
+#       target: dasi-runtime
+#       args:
+#         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
+#         - DASI_VERSION=${DASI_VERSION:-0.3.1}
+#     command: >
+#       bash -lc "
+#         echo 'DASI Lib version:' $(dasi version) &&
+#         python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
+#         python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
+#       "
 
 volumes:
-    ruciodb:
-    rucioinitstate:
-    rucio-storage:
-    minio-data:
+  ruciodb:
+  rucioinitstate:
+  rucio-storage:
+  minio-data:

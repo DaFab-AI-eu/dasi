@@ -34,7 +34,7 @@ include( "./${CMAKE_SYSTEM_NAME}.cmake" )
 ecbuild_bundle_initialize()
 
 ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
-ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH project/dafab UPDATE )
+ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH develop UPDATE )
 ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab-2.2 UPDATE )
 ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" TAG v${DASI_VERSION} UPDATE )
 

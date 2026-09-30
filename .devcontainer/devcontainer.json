@@ -32,9 +32,26 @@
                     "CMAKE_CXX_COMPILER": "/opt/rh/gcc-toolset-14/root/usr/bin/g++"
                 },
                 "cmake.sourceDirectory": "${workspaceFolder}",
-                "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+                "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+                "clangd.arguments": [
+                    "--compile-commands-dir=/tmp/build/dasi-bundle",
+                    "--log=error",
+                    "--background-index",
+                    "--clang-tidy",
+                    "--fallback-style=llvm",
+                    "--pretty",
+                    "--function-arg-placeholders=0",
+                    "--completion-style=detailed",
+                    "--completion-parse=always",
+                    "--header-insertion=never",
+                    "--header-insertion-decorators",
+                    "--all-scopes-completion",
+                    "--pch-storage=memory",
+                    "-j=24"
+                ]
             },
             "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
                 "ms-vscode.cpptools",
                 "ms-vscode.cpp-devtools",
                 "ms-vscode.cmake-tools",

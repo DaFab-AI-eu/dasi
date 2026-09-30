@@ -111,6 +111,7 @@ RUN set -ex; \
 WORKDIR /workspace
 
 COPY ./bundle/CMakeLists.txt .
+COPY ./bundle/CMakePresets.json .
 COPY ./bundle/Linux.cmake .
 
 RUN set -ex; \
