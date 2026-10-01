@@ -92,7 +92,7 @@ services:
   # Certs in ./minio/certs make MinIO serve HTTPS on :9000. eckit's S3 client
   # forces HTTPS (with cert verification disabled), so TLS is required.
   minio:
-    image: minio/minio:latest
+    image: pgsty/silo:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
