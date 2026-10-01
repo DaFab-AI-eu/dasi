@@ -10,14 +10,28 @@
 #include "dasi/api/dasi_c.h"
 
 #include "dasi/api/Dasi.h"
+#include "dasi/api/Key.h"
+#include "dasi/api/Query.h"
+#include "dasi/api/detail/ListDetail.h"
+#include "dasi/api/detail/PurgeDetail.h"
+#include "dasi/api/detail/RetrieveDetail.h"
+#include "dasi/api/detail/WipeDetail.h"
 #include "eckit/exception/Exceptions.h"
+#include "eckit/io/DataHandle.h"
+#include "eckit/log/CodeLocation.h"
+#include "eckit/log/Log.h"
 #include "eckit/runtime/Main.h"
 #include "lib/dasi_version.h"
 
-// #include <time.h>
-
+#include <exception>
 #include <functional>
+#include <iterator>
+#include <memory>
 #include <optional>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 extern "C" {
 
