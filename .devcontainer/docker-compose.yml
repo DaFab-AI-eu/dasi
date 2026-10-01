@@ -161,41 +161,41 @@ services:
     stdin_open: true
     tty: true
 
-#   test:
-#     build:
-#       context: ..
-#       dockerfile: Dockerfile
-#       target: dasi-tester
-#       args:
-#         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
-#         - DASI_VERSION=${DASI_VERSION:-0.3.1}
+  test:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-tester
+      args:
+        - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
+        - DASI_VERSION=${DASI_VERSION:-0.3.1}
     # env_file: dev.env
-#     depends_on:
-#       minio:
-#         condition: service_healthy
-#     command: >
-#       bash -lc "
-#         set -ex;
-#         ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
-#         cmake --build /tmp/build/dasi-bundle --target pydasi_test
-#       "
+    depends_on:
+      minio:
+        condition: service_healthy
+    command: >
+      bash -lc "
+        set -ex;
+        ctest --test-dir /tmp/build/dasi-bundle --output-on-failure -E fdb_move_auxiliary.sh &&
+        cmake --build /tmp/build/dasi-bundle --target pydasi_test
+      "
 
-#   runtime:
-#     image: dasi:${DASI_VERSION:-0.3.1}
+  runtime:
+    image: dasi:${DASI_VERSION:-0.3.1}
     # env_file: dev.env
-#     build:
-#       context: ..
-#       dockerfile: Dockerfile
-#       target: dasi-runtime
-#       args:
-#         - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
-#         - DASI_VERSION=${DASI_VERSION:-0.3.1}
-#     command: >
-#       bash -lc "
-#         echo 'DASI Lib version:' $(dasi version) &&
-#         python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
-#         python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
-#       "
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: dasi-runtime
+      args:
+        - DEPS_IMAGE=${DEPS_IMAGE:-build-dependencies}
+        - DASI_VERSION=${DASI_VERSION:-0.3.1}
+    command: >
+      bash -lc "
+        echo 'DASI Lib version:' $(dasi version) &&
+        python -c 'from pydasi import Dasi, Key, Query; print(\"All imports OK\")' &&
+        python -c 'import pydasi; print(f\"pydasi version: {pydasi.Version}\")'
+      "
 
 volumes:
   ruciodb:
