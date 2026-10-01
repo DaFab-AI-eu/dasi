@@ -99,7 +99,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_REGION: ${MINIO_REGION}
       # Point "local" alias at the HTTPS endpoint for the healthcheck
-      MC_HOST_local: https://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000
+      MC_HOST_local: http://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000
+      MC_INSECURE: "true" # Disables SSL verification globally for mc
     ports:
       - '9000:9000' # S3 API (HTTPS)
       - '9001:9001' # web console  →  https://localhost:9001
@@ -109,7 +110,7 @@ services:
       - ./minio/certs:/root/.minio/certs:ro
     healthcheck:
       # --insecure: self-signed cert is not in the trust store.
-      test: ['CMD', 'mc', '--insecure', 'ready', 'local']
+      test: ['CMD', 'mc', 'ready', 'local']
       interval: 5s
       timeout: 5s
       retries: 5
