@@ -15,151 +15,22 @@ permissions:
   contents: read
   packages: write
 
-env:
-  COMPOSE_FILE: .devcontainer/docker-compose.yml
-
 jobs:
-  build:
-    name: build test image
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    outputs:
-      test_image: ${{ steps.vars.outputs.test_image }}
-      deps_image: ${{ steps.vars.outputs.deps_image }}
-      dasi_version: ${{ steps.vars.outputs.dasi_version }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to ghcr.io
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Resolve build variables
-        id: vars
-        run: |
-          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          dasi_version=$(grep -oP 'project\(\s*dasi\s+VERSION\s+\K[0-9]+(\.[0-9]+)*' CMakeLists.txt)
-          echo "deps_image=ghcr.io/${owner}/dasi-build-deps:latest" >> "$GITHUB_OUTPUT"
-          echo "test_image=ghcr.io/${owner}/dasi-test:${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          echo "dasi_version=${dasi_version}" >> "$GITHUB_OUTPUT"
-
-      - name: Write compose .env defaults
-        run: |
-          cat > .devcontainer/.env << EOF
-          DASI_VERSION=${{ steps.vars.outputs.dasi_version }}
-          DEPS_IMAGE=${{ steps.vars.outputs.deps_image }}
-          TEST_IMAGE=${{ steps.vars.outputs.test_image }}
-          POSTGRES_DB=dasi
-          POSTGRES_USER=dasi
-          POSTGRES_PASSWORD=dasi
-          RUCIO_CFG_DATABASE_DEFAULT=postgresql://dasi:dasi@rucio-db/dasi
-          RUCIO_ACCOUNT=root
-          RUCIO_AUTH_TYPE=userpass
-          RUCIO_USERNAME=root
-          RUCIO_PASSWORD=secret
-          RUCIO_HOST=http://rucio-server
-          RUCIO_ENABLE_SSL=False
-          RUCIO_SERVER_TYPE=rest
-          RUCIO_LOG_LEVEL=DEBUG
-          RUCIO_HOSTNAME=localhost
-          MINIO_ROOT_USER=minio
-          MINIO_ROOT_PASSWORD=minio1234
-          MINIO_REGION=eu-central-1
-          MINIO_BUCKET=dasi
-          GLOBUS_DIR=./rucio/.globus
-          EOF
-
-      - name: Build and push test image
-        run: |
-          docker compose build test
-          docker compose push test
-
-  test:
-    name: test (${{ matrix.suite }})
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - suite: eckit
-            command: ctest --test-dir /tmp/build/dasi-bundle/eckit --output-on-failure
-          - suite: metkit
-            command: ctest --test-dir /tmp/build/dasi-bundle/metkit --output-on-failure
-          - suite: fdb
-            command: ctest --test-dir /tmp/build/dasi-bundle/fdb --output-on-failure -E fdb_move_auxiliary.sh
-          - suite: dasi-cpp
-            command: ctest --test-dir /tmp/build/dasi-bundle/dasi --output-on-failure
-          - suite: pydasi
-            command: cmake --build /tmp/build/dasi-bundle --target pydasi_test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to ghcr.io
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Write compose .env defaults
-        run: |
-          cat > .devcontainer/.env << EOF
-          DASI_VERSION=${{ needs.build.outputs.dasi_version }}
-          DEPS_IMAGE=${{ needs.build.outputs.deps_image }}
-          TEST_IMAGE=${{ needs.build.outputs.test_image }}
-          POSTGRES_DB=dasi
-          POSTGRES_USER=dasi
-          POSTGRES_PASSWORD=dasi
-          RUCIO_CFG_DATABASE_DEFAULT=postgresql://dasi:dasi@rucio-db/dasi
-          RUCIO_ACCOUNT=root
-          RUCIO_AUTH_TYPE=userpass
-          RUCIO_USERNAME=root
-          RUCIO_PASSWORD=secret
-          RUCIO_HOST=http://rucio-server
-          RUCIO_ENABLE_SSL=False
-          RUCIO_SERVER_TYPE=rest
-          RUCIO_LOG_LEVEL=DEBUG
-          RUCIO_HOSTNAME=localhost
-          MINIO_ROOT_USER=minio
-          MINIO_ROOT_PASSWORD=minio1234
-          MINIO_REGION=eu-central-1
-          MINIO_BUCKET=dasi
-          GLOBUS_DIR=./rucio/.globus
-          EOF
-
-      - name: Pull prebuilt test image
-        run: docker compose pull test
-
-      - name: Run ${{ matrix.suite }} tests
-        run: |
-          docker compose run --rm test \
-            bash -lc "set -ex; ${{ matrix.command }}"
-
-      - name: Dump compose logs on failure
-        if: failure()
-        run: docker compose logs --no-color --timestamps
-
-      - name: Tear down compose stack
-        if: always()
-        run: docker compose down --volumes --remove-orphans
+  build-test:
+    uses: ./.github/workflows/build-test.yml
+    with:
+      publish: ${{ github.event_name == 'push' }}
 
   ci:
     name: ci
     if: always()
-    needs: [build, test]
+    needs: build-test
     runs-on: ubuntu-latest
     steps:
       - name: Verify all jobs succeeded
         run: |
-          if [ "${{ needs.build.result }}" != "success" ] || [ "${{ needs.test.result }}" != "success" ]; then
-            echo "One or more CI jobs failed."
+          if [[ "${{ needs.build-test.result }}" != "success" ]]; then
+            echo "Build, tests, or runtime validation failed."
             exit 1
           fi
           echo "All CI jobs succeeded."

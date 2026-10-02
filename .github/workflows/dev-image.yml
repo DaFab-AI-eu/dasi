@@ -1,19 +1,13 @@
-name: Build Dev Environment
+name: Refresh Dev Image
 
+# Recipe changes are built by CI; this only picks up upstream package updates.
 on:
   workflow_dispatch:
   schedule:
-    # Weekly rebuild (Mon 03:00 UTC) to pick up upstream security updates.
     - cron: '0 3 * * 1'
-  push:
-    branches: [main, develop]
-    paths:
-      - 'Dockerfile'
-      - '.github/workflows/build-deps.yml'
-      - '.github/actions/prepare-dev/**'
 
 concurrency:
-  group: build-deps-${{ github.ref }}
+  group: dev-image
   cancel-in-progress: true
 
 permissions:
@@ -21,7 +15,7 @@ permissions:
   packages: write
 
 jobs:
-  build-deps:
+  refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -39,8 +33,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare or refresh shared dev environment
+      - name: Rebuild and publish dev image
         uses: ./.github/actions/prepare-dev
         with:
           publish: true
-          refresh: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          refresh: true

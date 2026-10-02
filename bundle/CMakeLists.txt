@@ -27,15 +27,39 @@ set( CMAKE_CXX_EXTENSIONS OFF )
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 # Load platform-specific configuration
-include( "./${CMAKE_SYSTEM_NAME}.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/${CMAKE_SYSTEM_NAME}.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/Dependencies.cmake" )
 
 ########################################################################################################################
 
 ecbuild_bundle_initialize()
 
-ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
-ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH develop UPDATE )
-ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab-2.2 UPDATE )
-ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" BRANCH develop MANUAL )
+ecbuild_bundle( PROJECT eckit  GIT "https://github.com/ecmwf/eckit"  TAG ${ECKIT_REF} )
+ecbuild_bundle( PROJECT metkit GIT "https://github.com/ecmwf/metkit" TAG ${METKIT_REF} )
+ecbuild_bundle( PROJECT fdb    GIT "https://github.com/ecmwf/fdb"    TAG ${FDB_REF} )
+
+get_filename_component( _dasi_parent "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE )
+set( _dasi_source "" )
+if( EXISTS "${_dasi_parent}/include/dasi/api/Dasi.h" )
+	set( _dasi_source "${_dasi_parent}" )
+endif()
+set( DASI_SOURCE_DIR "${_dasi_source}" CACHE PATH "Local DASI checkout" )
+set( DASI_REPOSITORY "https://github.com/DaFab-AI-eu/dasi" CACHE STRING "DASI Git repository" )
+set( DASI_REF "" CACHE STRING "Remote DASI tag or commit" )
+
+if( DASI_SOURCE_DIR )
+	if( EXISTS "${PROJECT_SOURCE_DIR}/dasi" )
+		get_filename_component( _existing_dasi "${PROJECT_SOURCE_DIR}/dasi" REALPATH )
+		get_filename_component( _requested_dasi "${DASI_SOURCE_DIR}" REALPATH )
+		if( NOT _existing_dasi STREQUAL _requested_dasi )
+			message( FATAL_ERROR "Bundle contains another DASI checkout; use a clean bundle directory" )
+		endif()
+	endif()
+	ecbuild_bundle( PROJECT dasi SOURCE "${DASI_SOURCE_DIR}" )
+elseif( DASI_REF )
+	ecbuild_bundle( PROJECT dasi GIT "${DASI_REPOSITORY}" TAG "${DASI_REF}" )
+else()
+	message( FATAL_ERROR "Set DASI_SOURCE_DIR for local development or DASI_REF for a remote checkout" )
+endif()
 
 ecbuild_bundle_finalize()

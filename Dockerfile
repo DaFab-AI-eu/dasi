@@ -1,12 +1,12 @@
-# DEPS_IMAGE selects the base for the downstream stages.
-# CI overrides it with a prebuilt GHCR image (e.g. ghcr.io/<owner>/dasi-build-deps:latest)
-ARG DEPS_IMAGE=build-dependencies
+# syntax=docker/dockerfile:1
 
 # =============================================================================
 # Base image with compilers, tools, and pre-built dependencies (ecbuild, libaec, aws-sdk)
 # =============================================================================
 FROM rockylinux/rockylinux:9.6 AS build-dependencies
 
+ARG BUILD_JOBS=2
+ENV CMAKE_BUILD_PARALLEL_LEVEL=${BUILD_JOBS}
 LABEL org.opencontainers.image.title="DASI build dependencies" \
       org.opencontainers.image.description="Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI." \
       org.opencontainers.image.source="https://github.com/ecmwf-projects/dasi" \
@@ -52,7 +52,8 @@ RUN set -ex; \
     rm -rf /tmp/ecbuild
 
 # Install libaec from source
-ADD --keep-git-dir=true https://gitlab.dkrz.de/k202009/libaec.git /tmp/libaec
+ARG LIBAEC_REF=b8fd98cfbba2fcc82f1c99813465d7c4806b9d4d
+ADD --keep-git-dir=true https://gitlab.dkrz.de/k202009/libaec.git#${LIBAEC_REF} /tmp/libaec
 
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
@@ -64,10 +65,14 @@ RUN set -ex; \
     rm -rf /tmp/libaec
 
 # Install AWS SDK CPP (S3 only)
+ARG AWS_SDK_REF=32b1058cbe6b99559aa7d0b899b60f16e86bb766
 RUN set -ex; \
     source /opt/rh/gcc-toolset-14/enable && \
-    git clone --depth 1 --recurse-submodules --shallow-submodules \
-    https://github.com/aws/aws-sdk-cpp /tmp/aws-sdk-cpp && \
+    git init /tmp/aws-sdk-cpp && \
+    git -C /tmp/aws-sdk-cpp remote add origin https://github.com/aws/aws-sdk-cpp && \
+    git -C /tmp/aws-sdk-cpp fetch --depth 1 origin "${AWS_SDK_REF}" && \
+    git -C /tmp/aws-sdk-cpp checkout --detach FETCH_HEAD && \
+    git -C /tmp/aws-sdk-cpp submodule update --init --recursive --depth 1 && \
     cmake -S /tmp/aws-sdk-cpp -B /tmp/aws-sdk-cpp/build \
     -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
@@ -83,12 +88,10 @@ RUN set -ex; \
     /tmp/aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
 
-RUN mkdir -p /root/.rucio && chmod 700 /root/.rucio
-
 # =============================================================================
-# Development environment for devcontainer
+# Development environment for devcontainer and CI
 # =============================================================================
-FROM ${DEPS_IMAGE} AS dev-env
+FROM build-dependencies AS dev-env
 
 # Configure shell environment for interactive use
 RUN echo "source /opt/rh/gcc-toolset-14/enable" >> /etc/profile.d/dev-env.sh
@@ -100,7 +103,7 @@ RUN set -ex; \
     gdb valgrind systemtap ltrace strace perf papi lcov \
     llvm-toolset clang-tools-extra \
     # Editor and utilities
-    vim-enhanced less sudo && \
+    vim-enhanced less sudo ccache && \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/* /var/tmp/* ~/.cache/* && \
     # Install Python development tools
@@ -108,70 +111,23 @@ RUN set -ex; \
     pytest pytest-env pycparser pyyaml packaging build \
     black isort flake8 mypy ipython debugpy
 
-WORKDIR /workspace
+RUN useradd --create-home --uid 1000 vscode && \
+    echo 'vscode ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/vscode && \
+    chmod 0440 /etc/sudoers.d/vscode && \
+    mkdir -p /workspace/dasi /workspace/bundle /workspace/.ccache /tmp/build /workspace/install && \
+    chown -R vscode:vscode /workspace /tmp/build
 
-COPY ./bundle/CMakeLists.txt .
-COPY ./bundle/CMakePresets.json .
-COPY ./bundle/Linux.cmake .
-
-RUN set -ex; \
-    sed -i 's/\(PROJECT.*dasi.*GIT.*\)UPDATE/\1MANUAL/' CMakeLists.txt && \
-    sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
-    sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake
-
-# =============================================================================
-# Builds DASI
-# =============================================================================
-FROM ${DEPS_IMAGE} AS dasi-builder
-
-ARG DASI_VERSION=${DASI_VERSION:-latest}
-
-RUN echo "Building DASI Version: ${DASI_VERSION}"
-
-WORKDIR /workspace
-
-COPY ./bundle/CMakeLists.txt .
-COPY ./bundle/Linux.cmake .
-
-RUN set -ex; \
-    source /opt/rh/gcc-toolset-14/enable && \
-    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
-    sed -i 's/ENABLE_TESTS.*ON/ENABLE_TESTS OFF/' Linux.cmake && \
-    sed -i 's/BUILD_TESTING.*ON/BUILD_TESTING OFF/' Linux.cmake && \
-    cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr/local && \
-    cmake --build /tmp/build/dasi-bundle --target all install pydasi_package && \
-    cp ./dasi/pydasi/dist/pydasi-*.whl /tmp/ && \
-    rm -rf /tmp/build/dasi-bundle
-
-# =============================================================================
-# Tests DASI
-# =============================================================================
-FROM ${DEPS_IMAGE} AS dasi-tester
-
-ARG DASI_VERSION=${DASI_VERSION:-latest}
-
-RUN echo "Testing DASI Version: ${DASI_VERSION}"
-
-WORKDIR /workspace
-
-COPY ./bundle/CMakeLists.txt .
-COPY ./bundle/Linux.cmake .
-
-RUN set -ex; \
-    source /opt/rh/gcc-toolset-14/enable && \
-    sed -i "s|set(.DASI_VERSION.*)|set( DASI_VERSION ${DASI_VERSION} )|" CMakeLists.txt && \
-    sed -i 's/ENABLE_TESTS.*OFF/ENABLE_TESTS ON/' Linux.cmake && \
-    sed -i 's/BUILD_TESTING.*OFF/BUILD_TESTING ON/' Linux.cmake && \
-    cmake -S . -B /tmp/build/dasi-bundle -G Ninja -DCMAKE_BUILD_TYPE=Debug && \
-    cmake --build /tmp/build/dasi-bundle --target all pydasi_develop
+ENV CCACHE_DIR=/workspace/.ccache CCACHE_MAXSIZE=1G
+WORKDIR /workspace/dasi
+USER vscode
+CMD ["bash"]
 
 # =============================================================================
 # Runtime stage
 # =============================================================================
 FROM rockylinux/rockylinux:9.6-minimal AS dasi-runtime
 
-ARG DASI_VERSION=${DASI_VERSION:-latest}
+ARG DASI_VERSION=latest
 
 LABEL version="dasi:${DASI_VERSION}"
 
@@ -179,27 +135,26 @@ LABEL version="dasi:${DASI_VERSION}"
 RUN set -ex; \
     microdnf install -y \
     libstdc++ \
-    python3.11 \
-    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl ca-certificates && \
+    python3.11 python3.11-pip \
+    ncurses openssl lz4-libs bzip2-libs zlib libuuid libcurl libgfortran ca-certificates && \
     microdnf clean all && \
     rm -rf /var/cache/* /var/log/* /var/tmp/* && \
     ln -sf /usr/bin/python3.11 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.11 /usr/bin/python && \
-    python -m ensurepip --upgrade  && \
     python -m pip install --upgrade pip && \
     python -m pip install -q --no-cache-dir boto3 "rucio-clients==40.2.0"
 
-# Copy DASI installation from builder
-COPY --from=dasi-builder /usr/local /usr/local/
-COPY --from=dasi-builder /opt/rh/gcc-toolset-14/root/usr/lib/gcc/x86_64-redhat-linux/14/libstdc++.so.6* /usr/local/lib64/
+COPY .artifacts/install/ /opt/dasi/
+COPY .artifacts/wheels/ /tmp/wheels/
 
 # Update the dynamic linker cache
-RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/dasi-libs.conf && ldconfig
+RUN printf '/opt/dasi/lib\n/opt/dasi/lib64\n' > /etc/ld.so.conf.d/dasi-libs.conf && ldconfig
 
 # Install pydasi
-COPY --from=dasi-builder /tmp/pydasi-*.whl /tmp/
+RUN pip install --no-cache-dir /tmp/wheels/pydasi-*.whl && \
+    rm -rf /tmp/wheels && \
+    mkdir -p /workspace && chown 1000:1000 /workspace
 
-RUN pip install --no-cache-dir /tmp/pydasi-*.whl && \
-    rm -rf /tmp/pydasi-*.whl
-
+ENV PATH=/opt/dasi/bin:$PATH
 WORKDIR /workspace
+USER 1000:1000

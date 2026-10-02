@@ -1,0 +1,76 @@
+name: Prepare DASI dev image
+description: Reuse or build the source-free toolchain used by CI and development
+inputs:
+  publish:
+    description: Publish missing images to GHCR
+    default: 'false'
+  refresh:
+    description: Refresh OS packages even when the recipe is unchanged
+    default: 'false'
+outputs:
+  image:
+    description: Local image reference, pinned by digest when published
+    value: ${{ steps.resolve.outputs.image }}
+  identity:
+    description: Image identity for compiler and runtime caches
+    value: ${{ steps.resolve.outputs.identity }}
+runs:
+  using: composite
+  steps:
+    - name: Compute environment image reference
+      id: vars
+      shell: bash
+      run: |
+        set -euo pipefail
+        repository=$(printf '%s\n' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')
+        key=$(awk '/^FROM .* AS dasi-runtime$/ {exit} {print}' Dockerfile | sha256sum | cut -d ' ' -f 1)
+        echo "image=ghcr.io/${repository}-dev:env-${key}" >> "$GITHUB_OUTPUT"
+
+    - name: Check for matching environment image
+      id: cached
+      shell: bash
+      env:
+        DEV_IMAGE: ${{ steps.vars.outputs.image }}
+        REFRESH: ${{ inputs.refresh }}
+      run: |
+        if [[ "$REFRESH" != "true" ]] && docker buildx imagetools inspect "$DEV_IMAGE" > /dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Build missing or refreshed environment
+      if: steps.cached.outputs.exists != 'true'
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: Dockerfile
+        target: dev-env
+        load: true
+        push: ${{ inputs.publish == 'true' }}
+        pull: true
+        provenance: false
+        tags: ${{ steps.vars.outputs.image }}
+        no-cache-filters: ${{ inputs.refresh == 'true' && 'build-dependencies,dev-env' || '' }}
+        cache-from: type=gha,scope=dasi-dev
+        cache-to: type=gha,mode=max,scope=dasi-dev
+
+    - name: Resolve the loaded environment
+      id: resolve
+      shell: bash
+      env:
+        DEV_IMAGE: ${{ steps.vars.outputs.image }}
+        REMOTE: ${{ steps.cached.outputs.exists }}
+        PUBLISH: ${{ inputs.publish }}
+      run: |
+        set -euo pipefail
+        if [[ "$REMOTE" == "true" || "$PUBLISH" == "true" ]]; then
+          digest=$(docker buildx imagetools inspect "$DEV_IMAGE" --format '{{json .Manifest}}' | jq -er '.digest')
+          image="${DEV_IMAGE%:*}@${digest}"
+          identity="$digest"
+        else
+          image="$DEV_IMAGE"
+          identity=$(docker image inspect "$image" --format '{{.Id}}')
+        fi
+        echo "image=${image}" >> "$GITHUB_OUTPUT"
+        echo "identity=${identity#sha256:}" >> "$GITHUB_OUTPUT"

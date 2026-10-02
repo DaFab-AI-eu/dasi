@@ -5,9 +5,9 @@ Data Access and Storage Interface (DASI)
     :target: https://dasi.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://github.com/DaFab-AI-eu/dasi/actions/workflows/build-deps.yml/badge.svg
-   :target: https://github.com/DaFab-AI-eu/dasi/actions/workflows/build-deps.yml
-   :alt: Build Deps Image
+.. image:: https://github.com/DaFab-AI-eu/dasi/actions/workflows/dev-image.yml/badge.svg
+   :target: https://github.com/DaFab-AI-eu/dasi/actions/workflows/dev-image.yml
+   :alt: Dev Image
 
 .. image:: https://github.com/DaFab-AI-eu/dasi/actions/workflows/ci.yml/badge.svg
    :target: https://github.com/DaFab-AI-eu/dasi/actions/workflows/ci.yml
@@ -158,18 +158,100 @@ Containerized Installation
 --------------------------
 
 A containerized installation using `Docker <https://www.docker.com/>`_ is also available.
+The Dockerfile has three stages: ``build-dependencies`` installs the toolchain,
+``dev-env`` adds development tools, and ``dasi-runtime`` packages a tested installation.
+Neither the toolchain nor the dev image contains DASI source code.
 
-This will build and start a container with DASI and pydasi installed.
+Local Development
+~~~~~~~~~~~~~~~~~
 
-```bash
-docker compose -f .devcontainer/docker-compose.yml up --build dasi-runtime
-```
+Open this repository in VS Code and select **Dev Containers: Reopen in Container**.
+The editor opens the mounted checkout at ``/workspace/dasi`` as the non-root
+``vscode`` user. Startup configures the bundle with that checkout as its local
+DASI source; it never switches the checkout's Git branch. Build trees, dependency
+sources, installation files, and compiler caches use persistent named volumes.
+The Python interpreter is ``/workspace/dasi/.venv/bin/python``.
 
-the following command will build and test dasi and pydasi using docker compose:
+Optional overrides belong in ``.devcontainer/.env``, which is ignored by Git;
+see ``.devcontainer/.env.example``. ``DEV_IMAGE`` selects the development image.
 
-```bash
-docker compose -f .devcontainer/docker-compose.yml up --build dasi-tester
-```
+Pipeline scripts live in ``scripts/`` and are shared by the devcontainer and CI:
+``configure.sh`` configures the bundle, ``build-and-test.sh`` builds, tests and
+exports artifacts, and ``smoke-test.sh`` checks a runtime image.
+
+Inside the devcontainer:
+
+.. code-block:: shell
+
+   cmake --build /tmp/build/dasi-bundle --parallel 2 --target all pydasi_develop
+
+Rucio and MinIO are optional for editing and filesystem-only development. Start
+the integration stack from a host terminal when needed:
+
+.. code-block:: shell
+
+   docker compose -f .devcontainer/docker-compose.yml \
+     -f .devcontainer/docker-compose.local.yml \
+     --profile integration up -d rucio-setup
+
+The shared initializers create the MinIO bucket and Rucio catalogue entries.
+Local-only port bindings expose Rucio on ``localhost:8080`` and MinIO on
+``https://localhost:9000``; CI does not publish host ports. The checked-in TLS
+certificates and default credentials are for development only.
+
+Once integration services are ready, run all tests and package runtime artifacts
+inside the devcontainer:
+
+.. code-block:: shell
+
+   bash scripts/build-and-test.sh
+
+This builds once in Release mode in ``/tmp/build/dasi-release`` (separate from
+the Debug tree in ``/tmp/build/dasi-bundle``), runs all CTest suites and Python
+tests, and exports the successful installation and wheel to ``.artifacts/``.
+The existing ``fdb_move_auxiliary.sh`` exclusion is retained. ``BUILD_JOBS`` and
+``TEST_JOBS`` control parallelism; both default to two.
+
+After successful tests, a host terminal can package and check the same artifacts:
+
+.. code-block:: shell
+
+   docker build --target dasi-runtime --build-arg DASI_VERSION=0.3.1 -t dasi:local .
+   docker run --rm -e DASI_EXPECTED_VERSION=0.3.1 \
+     -v "$PWD/scripts/smoke-test.sh:/smoke.sh:ro" dasi:local bash /smoke.sh
+
+The runtime does not clone or compile DASI again. Its smoke check verifies both
+versions and a filesystem archive/retrieve round trip.
+
+CI And Releases
+~~~~~~~~~~~~~~~
+
+``ci.yml`` and ``cd.yml`` use the same reusable ``build-test.yml`` pipeline.
+Every normal CI run builds the requested checkout once and runs C++ and Python
+tests. Environment images are reused by recipe hash and resolved to immutable
+digests. Missing PR environments are built locally, without pushing PR images
+or transferring image tarballs between jobs. BuildKit and compiler caches avoid
+unnecessary work on reruns.
+
+On trusted branch pushes, publication occurs only after tests and the installed
+runtime smoke check succeed. Runtime cache tags identify the source commit and
+environment digest. Test reports use the repository's normal artifact retention.
+
+For a ``v*`` release tag, the pipeline first verifies that the tag matches the
+checked-out DASI version. It can reuse a matching previously tested runtime;
+otherwise it performs the full build and tests. CD promotes that tested digest
+to release tags instead of doing an independent source checkout and rebuild.
+
+CI builds and publishes the dev image whenever its recipe changes.
+``dev-image.yml`` additionally rebuilds it weekly (or on demand) without layer
+caching, to pick up upstream OS package updates.
+
+Dependency revisions are pinned in ``bundle/Dependencies.cmake``; libaec and the
+AWS SDK are pinned in the Dockerfile. Update these revisions deliberately and
+let CI validate the resulting combination. Standalone bundle builds select the
+parent DASI checkout automatically, or accept an explicit ``DASI_SOURCE_DIR``.
+Remote bundle builds require ``DASI_REF`` and optionally ``DASI_REPOSITORY``;
+there is no implicit checkout of ``develop``.
 
 
 
