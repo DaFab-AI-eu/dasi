@@ -52,7 +52,8 @@ services:
         condition: service_healthy
     command: ['/usr/local/bin/rucio-init-wrapper.sh']
     environment:
-      - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT:-postgresql://dasi:dasi@rucio-db/dasi}
+      # Rucio 40 images ship psycopg v3 only; a bare postgresql:// URL selects psycopg2.
+      - RUCIO_CFG_DATABASE_DEFAULT=postgresql+psycopg://${POSTGRES_USER:-dasi}:${POSTGRES_PASSWORD:-dasi}@rucio-db/${POSTGRES_DB:-dasi}
       - RUCIO_BOOTSTRAP=True
       - RUCIO_ACCOUNT=${RUCIO_ACCOUNT:-root}
       - RUCIO_AUTH_TYPE=${RUCIO_AUTH_TYPE:-userpass}
@@ -60,7 +61,6 @@ services:
       - RUCIO_PASSWORD=${RUCIO_PASSWORD:-secret}
       - RUCIO_HOST=${RUCIO_HOST:-http://rucio-server}
     volumes:
-      - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
       - ./rucio-init-wrapper.sh:/usr/local/bin/rucio-init-wrapper.sh:ro
       - rucioinitstate:/var/lib/rucio-init
 
@@ -78,8 +78,8 @@ services:
       timeout: 5s
       retries: 12
     environment:
-      # Tell the server how to reach the DB
-      - RUCIO_CFG_DATABASE_DEFAULT=${RUCIO_CFG_DATABASE_DEFAULT:-postgresql://dasi:dasi@rucio-db/dasi}
+      # No rucio.cfg is mounted, so the entrypoint generates it from RUCIO_CFG_* variables.
+      - RUCIO_CFG_DATABASE_DEFAULT=postgresql+psycopg://${POSTGRES_USER:-dasi}:${POSTGRES_PASSWORD:-dasi}@rucio-db/${POSTGRES_DB:-dasi}
       # Basic configuration variables
       - RUCIO_ENABLE_SSL=${RUCIO_ENABLE_SSL:-False}
       - RUCIO_SERVER_TYPE=${RUCIO_SERVER_TYPE:-rest}
@@ -101,7 +101,6 @@ services:
       - PYTHONPATH=/workspace/dasi/pydasi/src
     volumes:
       - ../pydasi/src:/workspace/dasi/pydasi/src:ro
-      - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
       - ./rucio/httpd-servername.conf:/etc/httpd/conf.d/00-servername.conf:ro
       - ./rucio/rucio.conf.j2:/tmp/rucio.conf.j2:ro
 
