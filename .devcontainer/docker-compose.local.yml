@@ -1,7 +1,17 @@
+# Devcontainer-only overrides: start the integration stack by default and bind host ports.
 services:
   rucio-db:
+    profiles: !reset []
     ports: ['127.0.0.1:5432:5432']
+  rucio-init:
+    profiles: !reset []
   rucio-server:
+    profiles: !reset []
     ports: ['127.0.0.1:8080:80', '127.0.0.1:8443:443']
   minio:
+    profiles: !reset []
     ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001']
+  minio-init:
+    profiles: !reset []
+  rucio-setup:
+    profiles: !reset []

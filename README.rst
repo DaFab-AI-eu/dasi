@@ -166,11 +166,22 @@ Local Development
 ~~~~~~~~~~~~~~~~~
 
 Open this repository in VS Code and select **Dev Containers: Reopen in Container**.
-The editor opens the mounted checkout at ``/workspace/dasi`` as the non-root
-``vscode`` user. Startup configures the bundle with that checkout as its local
-DASI source; it never switches the checkout's Git branch. Build trees, dependency
-sources, installation files, and compiler caches use persistent named volumes.
-The Python interpreter is ``/workspace/dasi/.venv/bin/python``.
+The VS Code workspace is the bundle directory ``/workspace/bundle``, opened as the
+non-root ``vscode`` user:
+
+.. code-block:: text
+
+   /workspace/bundle/
+   ├── CMakeLists.txt, Linux.cmake, Dependencies.cmake  -> dasi/bundle/*
+   ├── eckit/  metkit/  fdb/   (cloned from the branches in Dependencies.cmake)
+   └── dasi/                   (this checkout, bind-mounted)
+
+The bundle files are symlinks into the checkout, so editing them edits the
+repository. ``eckit``, ``metkit`` and ``fdb`` are separate Git repositories kept in
+a persistent volume; commit changes to them in their own repositories. Startup
+configures the bundle and never switches any checkout's branch. Build trees,
+installation files and compiler caches also use persistent volumes. The Python
+interpreter is ``/workspace/bundle/dasi/.venv/bin/python``.
 
 Optional overrides belong in ``.devcontainer/.env``, which is ignored by Git;
 see ``.devcontainer/.env.example``. ``DEV_IMAGE`` selects the development image.
@@ -185,14 +196,14 @@ Inside the devcontainer:
 
    cmake --build /tmp/build/dasi-bundle --parallel 2 --target all pydasi_develop
 
-Rucio and MinIO are optional for editing and filesystem-only development. Start
-the integration stack from a host terminal when needed:
+The devcontainer also starts Rucio and MinIO (``docker-compose.local.yml``
+enables the ``integration`` profile). To start them for an already running
+devcontainer, run from a host terminal:
 
 .. code-block:: shell
 
-   docker compose -f .devcontainer/docker-compose.yml \
-     -f .devcontainer/docker-compose.local.yml \
-     --profile integration up -d rucio-setup
+   docker compose -p dasi -f .devcontainer/docker-compose.yml \
+     -f .devcontainer/docker-compose.local.yml up -d rucio-setup
 
 The shared initializers create the MinIO bucket and Rucio catalogue entries.
 Local-only port bindings expose Rucio on ``localhost:8080`` and MinIO on
@@ -204,13 +215,14 @@ inside the devcontainer:
 
 .. code-block:: shell
 
-   bash scripts/build-and-test.sh
+   bash dasi/scripts/build-and-test.sh
 
 This builds once in Release mode in ``/tmp/build/dasi-release`` (separate from
 the Debug tree in ``/tmp/build/dasi-bundle``), runs all CTest suites and Python
 tests, and exports the successful installation and wheel to ``.artifacts/``.
-The existing ``fdb_move_auxiliary.sh`` exclusion is retained. ``BUILD_JOBS`` and
-``TEST_JOBS`` control parallelism; both default to two.
+``fdb_move_auxiliary.sh`` and ``test_fdb5_s3_store`` (an upstream FDB S3 wipe
+bug) are excluded. ``BUILD_JOBS`` and ``TEST_JOBS`` control parallelism; both
+default to two.
 
 After successful tests, a host terminal can package and check the same artifacts:
 
@@ -246,12 +258,14 @@ CI builds and publishes the dev image whenever its recipe changes.
 ``dev-image.yml`` additionally rebuilds it weekly (or on demand) without layer
 caching, to pick up upstream OS package updates.
 
-Dependency revisions are pinned in ``bundle/Dependencies.cmake``; libaec and the
-AWS SDK are pinned in the Dockerfile. Update these revisions deliberately and
-let CI validate the resulting combination. Standalone bundle builds select the
-parent DASI checkout automatically, or accept an explicit ``DASI_SOURCE_DIR``.
-Remote bundle builds require ``DASI_REF`` and optionally ``DASI_REPOSITORY``;
-there is no implicit checkout of ``develop``.
+eckit, metkit and fdb track the branches set in ``bundle/Dependencies.cmake``.
+CI clones their current heads on every run. An existing clone, such as the one
+in the devcontainer volume, stays at its commit until you run
+``cmake --build /tmp/build/dasi-bundle --target update``. libaec and the AWS SDK
+are pinned in the Dockerfile. Standalone bundle builds select the parent DASI
+checkout automatically, or accept an explicit ``DASI_SOURCE_DIR``. Remote bundle
+builds require ``DASI_BRANCH`` and optionally ``DASI_REPOSITORY``; there is no
+implicit checkout of ``develop``.
 
 
 

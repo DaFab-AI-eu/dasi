@@ -1,3 +1,3 @@
-set( ECKIT_REF cf36be8518cc5c5de4fc2cd0c0e6e51730628189 CACHE STRING "eckit revision" )
-set( METKIT_REF b5f2d16e2558a00f8e78e370227f49cb99beb499 CACHE STRING "metkit revision" )
-set( FDB_REF 90e6398a153e97975df6393fa32fd89bcf69f4a1 CACHE STRING "FDB revision" )
+set( ECKIT_BRANCH project/dafab CACHE STRING "eckit branch" )
+set( METKIT_BRANCH develop CACHE STRING "metkit branch" )
+set( FDB_BRANCH project/dafab-2.2 CACHE STRING "FDB branch" )

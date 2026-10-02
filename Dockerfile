@@ -114,11 +114,11 @@ RUN set -ex; \
 RUN useradd --create-home --uid 1000 vscode && \
     echo 'vscode ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/vscode && \
     chmod 0440 /etc/sudoers.d/vscode && \
-    mkdir -p /workspace/dasi /workspace/bundle /workspace/.ccache /tmp/build /workspace/install && \
+    mkdir -p /workspace/bundle /workspace/.ccache /tmp/build /workspace/install && \
     chown -R vscode:vscode /workspace /tmp/build
 
 ENV CCACHE_DIR=/workspace/.ccache CCACHE_MAXSIZE=1G
-WORKDIR /workspace/dasi
+WORKDIR /workspace/bundle
 USER vscode
 CMD ["bash"]
 

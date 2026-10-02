@@ -153,11 +153,11 @@ services:
     <<: *dev-image
     environment: *client-environment
     volumes:
-      - ..:/workspace/dasi:cached
+      - ..:/workspace/bundle/dasi:cached
       - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
       # Optional host grid certificates for x509 Rucio authentication.
       - ${GLOBUS_DIR:-./rucio/.globus}:/etc/grid-security:ro
-      - bundle-sources:/workspace/bundle
+      - bundle:/workspace/bundle
       - build-cache:/tmp/build
       - compiler-cache:/workspace/.ccache
       - install-cache:/workspace/install
@@ -173,19 +173,19 @@ services:
     profiles: [ci]
     environment: *client-environment
     volumes:
-      - ..:/workspace/dasi
+      - ..:/workspace/bundle/dasi
       - ./rucio/rucio.cfg:/opt/rucio/etc/rucio.cfg:ro
       - ../.ccache:/workspace/.ccache
     depends_on:
       rucio-setup:
         condition: service_completed_successfully
-    command: ['bash', '/workspace/dasi/scripts/build-and-test.sh']
+    command: ['bash', '/workspace/bundle/dasi/scripts/build-and-test.sh']
 
 volumes:
   ruciodb:
   rucioinitstate:
   minio-data:
-  bundle-sources:
+  bundle:
   build-cache:
   compiler-cache:
   install-cache:

@@ -111,7 +111,7 @@ The project uses a multi-stage Dockerfile:
 - `dev-env`: Development tools (gdb, valgrind, clang-tools, pytest, ccache); used by the devcontainer and CI
 - `dasi-runtime`: Minimal runtime image packaged from tested `.artifacts/`
 
-Devcontainer workspace is `/workspace/dasi`; the bundle is configured in `/workspace/bundle` with build directory `/tmp/build/dasi-bundle`. Shared pipeline scripts are in `scripts/`.
+Devcontainer workspace is the bundle directory `/workspace/bundle` (bundle CMake files symlinked from `dasi/bundle/`, with `eckit/`, `metkit/`, `fdb/` and the `dasi/` checkout inside); build directory `/tmp/build/dasi-bundle`. Shared pipeline scripts are in `scripts/`.
 
 ### Configuration Files
 
