@@ -163,6 +163,7 @@ services:
     tty: true
 
   test:
+    image: ${TEST_IMAGE:-dasi-test:local}
     build:
       context: ..
       dockerfile: Dockerfile
