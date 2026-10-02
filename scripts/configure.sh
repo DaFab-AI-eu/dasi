@@ -9,10 +9,12 @@ mkdir -p "$bundle_dir" "$build_dir" "$CCACHE_DIR"
 cp "$source_dir/bundle/CMakeLists.txt" "$source_dir/bundle/Linux.cmake" \
     "$source_dir/bundle/Dependencies.cmake" "$bundle_dir/"
 
-if [[ ! -x "$source_dir/.venv/bin/python" ]]; then
-    python3 -m venv "$source_dir/.venv"
+# eckit's Python bindings configure against this venv and need the image's Cython.
+venv="$source_dir/.venv"
+if ! grep -qs '^include-system-site-packages = true' "$venv/pyvenv.cfg"; then
+    python3 -m venv --system-site-packages "$venv"
 fi
-export VIRTUAL_ENV="$source_dir/.venv"
+export VIRTUAL_ENV="$venv"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 cmake -S "$bundle_dir" -B "$build_dir" -G Ninja \
