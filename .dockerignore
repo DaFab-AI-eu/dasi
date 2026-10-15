@@ -10,6 +10,7 @@ bundle/build/
 bundle/eckit/
 bundle/metkit/
 bundle/fdb/
+bundle/dasi/
 *.o
 *.so
 *.dylib
@@ -23,6 +24,8 @@ __pycache__/
 .eggs/
 dist/
 *.whl
+!.artifacts/
+!.artifacts/**
 .venv/
 venv/
 .mypy_cache/
@@ -42,3 +45,5 @@ docs/_build/
 *.log
 *.tmp
 .DS_Store
+.devcontainer/.env
+.ccache/

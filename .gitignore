@@ -41,3 +41,6 @@ bundle/metkit
 bundle/dasi
 examples/rucio/retrieved
 **/pydasi/backend/libs
+.devcontainer/.env
+.artifacts/
+.ccache/

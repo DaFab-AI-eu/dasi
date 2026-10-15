@@ -108,11 +108,10 @@ Python tests use pytest with fixtures for temporary DASI configurations (see [py
 
 The project uses a multi-stage Dockerfile:
 - `build-dependencies`: Base with compilers, ecbuild, AWS SDK, libaec
-- `dev-env`: Development tools (gdb, valgrind, clang-tools, pytest)
-- `dasi-builder`: Builds DASI bundle and pydasi wheel
-- `dasi-runtime`: Minimal runtime image
+- `dev-env`: Development tools (gdb, valgrind, clang-tools, pytest, ccache); used by the devcontainer and CI
+- `dasi-runtime`: Minimal runtime image packaged from tested `.artifacts/`
 
-Devcontainer workspace is `/workspace/dasi/bundle` with build directory at `/tmp/build/dasi-bundle`.
+Devcontainer workspace is the bundle directory `/workspace/bundle` (bundle CMake files symlinked from `dasi/bundle/`, with `eckit/`, `metkit/`, `fdb/` and the `dasi/` checkout inside); build directory `/tmp/build/dasi-bundle`. Shared pipeline scripts are in `scripts/`.
 
 ### Configuration Files
 

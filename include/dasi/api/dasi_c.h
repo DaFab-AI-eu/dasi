@@ -79,7 +79,7 @@ typedef enum dasi_error_values_t {
     DASI_ERROR_BUG          = 4, /* Failed with an error bug. */
     DASI_ERROR_USER         = 5, /* Failed with an user error. */
     DASI_ERROR_ITERATOR     = 6, /* Failed with an iterator error. */
-    DASI_ERROR_ASSERT       = 7  /* Failed with an assert() */
+    DASI_ERROR_ASSERT       = 7, /* Failed with an assert() */
 } dasi_error_enum_t;
 
 /** Returns pointer to a globally allocated string.

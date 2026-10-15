@@ -18,7 +18,7 @@ from typing import Final
 from packaging.version import Version
 
 
-__version__: Final[str] = "0.3.1"
+__version__: Final[str] = "0.3.2"
 
 
 def is_compatible(library_version: str) -> bool:

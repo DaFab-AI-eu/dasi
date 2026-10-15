@@ -16,7 +16,7 @@ cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 
 find_package( ecbuild 3.12 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../ecbuild )
 
-set( DASI_VERSION 0.3.1 )
+set( DASI_VERSION 0.3.2 )
 
 project( dasi-bundle VERSION ${DASI_VERSION} LANGUAGES C CXX )
 
@@ -27,15 +27,42 @@ set( CMAKE_CXX_EXTENSIONS OFF )
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 
 # Load platform-specific configuration
-include( "./${CMAKE_SYSTEM_NAME}.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/${CMAKE_SYSTEM_NAME}.cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/Dependencies.cmake" )
 
 ########################################################################################################################
 
 ecbuild_bundle_initialize()
 
-ecbuild_bundle( PROJECT eckit   GIT "https://github.com/ecmwf/eckit"      BRANCH project/dafab UPDATE )
-ecbuild_bundle( PROJECT metkit  GIT "https://github.com/ecmwf/metkit"     BRANCH develop UPDATE )
-ecbuild_bundle( PROJECT fdb     GIT "https://github.com/ecmwf/fdb"        BRANCH project/dafab-2.2 UPDATE )
-ecbuild_bundle( PROJECT dasi    GIT "https://github.com/DaFab-AI-eu/dasi" TAG v${DASI_VERSION} UPDATE )
+ecbuild_bundle( PROJECT eckit  GIT "https://github.com/ecmwf/eckit"  BRANCH ${ECKIT_BRANCH} UPDATE )
+ecbuild_bundle( PROJECT metkit GIT "https://github.com/ecmwf/metkit" BRANCH ${METKIT_BRANCH} UPDATE )
+ecbuild_bundle( PROJECT fdb    GIT "https://github.com/ecmwf/fdb"    BRANCH ${FDB_BRANCH} UPDATE )
+
+get_filename_component( _dasi_parent "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE )
+set( _dasi_source "" )
+if( EXISTS "${_dasi_parent}/include/dasi/api/Dasi.h" )
+	set( _dasi_source "${_dasi_parent}" )
+endif()
+set( DASI_SOURCE_DIR "${_dasi_source}" CACHE PATH "Local DASI checkout" )
+set( DASI_REPOSITORY "https://github.com/DaFab-AI-eu/dasi" CACHE STRING "DASI Git repository" )
+set( DASI_BRANCH "" CACHE STRING "Remote DASI branch" )
+
+if( EXISTS "${PROJECT_SOURCE_DIR}/dasi/CMakeLists.txt" AND NOT IS_SYMLINK "${PROJECT_SOURCE_DIR}/dasi" )
+	# Checkout placed directly in the bundle (devcontainer and CI).
+	ecbuild_bundle( PROJECT dasi )
+elseif( DASI_SOURCE_DIR )
+	if( EXISTS "${PROJECT_SOURCE_DIR}/dasi" )
+		get_filename_component( _existing_dasi "${PROJECT_SOURCE_DIR}/dasi" REALPATH )
+		get_filename_component( _requested_dasi "${DASI_SOURCE_DIR}" REALPATH )
+		if( NOT _existing_dasi STREQUAL _requested_dasi )
+			message( FATAL_ERROR "Bundle contains another DASI checkout; use a clean bundle directory" )
+		endif()
+	endif()
+	ecbuild_bundle( PROJECT dasi SOURCE "${DASI_SOURCE_DIR}" )
+elseif( DASI_BRANCH )
+	ecbuild_bundle( PROJECT dasi GIT "${DASI_REPOSITORY}" BRANCH "${DASI_BRANCH}" )
+else()
+	message( FATAL_ERROR "Set DASI_SOURCE_DIR for local development or DASI_BRANCH for a remote checkout" )
+endif()
 
 ecbuild_bundle_finalize()

@@ -1,4 +1,4 @@
-name: Build Deps Image
+name: Build Dev Environment
 
 on:
   workflow_dispatch:
@@ -6,10 +6,11 @@ on:
     # Weekly rebuild (Mon 03:00 UTC) to pick up upstream security updates.
     - cron: '0 3 * * 1'
   push:
+    branches: [main, develop]
     paths:
       - 'Dockerfile'
       - '.github/workflows/build-deps.yml'
-      - '.devcontainer/docker-compose.yml'
+      - '.github/actions/prepare-dev/**'
 
 concurrency:
   group: build-deps-${{ github.ref }}
@@ -38,27 +39,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute base image reference
-        run: |
-          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          echo "DEPS_IMAGE=ghcr.io/${owner}/dasi-build-deps:latest" >> "$GITHUB_ENV"
-
-      - name: Build and push the build-dependencies stage
-        uses: docker/build-push-action@v5
+      - name: Prepare or refresh shared dev environment
+        uses: ./.github/actions/prepare-dev
         with:
-          context: .
-          file: Dockerfile
-          target: build-dependencies
-          push: true
-          tags: ${{ env.DEPS_IMAGE }}
-          labels: |
-            org.opencontainers.image.title=DASI build dependencies
-            org.opencontainers.image.description=Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI.
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=Apache-2.0
-            org.opencontainers.image.vendor=ECMWF
-            org.opencontainers.image.revision=${{ github.sha }}
-          annotations: |
-            org.opencontainers.image.description=Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI.
-          cache-from: type=registry,ref=${{ env.DEPS_IMAGE }}
-          cache-to: type=inline
+          publish: true
+          refresh: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}

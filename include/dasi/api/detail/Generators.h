@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <iterator>
 #include <memory>
 
@@ -88,9 +89,14 @@ public: // methods
 
     using const_iterator = APIIterator<T>;
 
-    explicit GenericGenerator(GenericGenerator&& rhs) : impl_{std::move(rhs.impl_)} {}
-    explicit GenericGenerator(std::unique_ptr<APIGeneratorImpl<T>>&& impl) : impl_{std::move(impl)} {}
-    ~GenericGenerator() = default;
+    explicit GenericGenerator(std::unique_ptr<APIGeneratorImpl<T>>&& impl) noexcept : impl_ {std::move(impl)} { }
+
+    GenericGenerator(const GenericGenerator&)            = delete;
+    GenericGenerator& operator=(const GenericGenerator&) = delete;
+
+    GenericGenerator(GenericGenerator&& rhs)            = default;
+    GenericGenerator& operator=(GenericGenerator&& rhs) = default;
+    virtual ~GenericGenerator()                         = default;
 
     const_iterator begin() { return APIIterator<T>{*impl_}; }
     static APIIteratorSentinel end() { return {}; }
