@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import NamedTuple
+
 from pydasi.backend import FFI, ffi, lib, new_retrieve
 from .key import Key
 from .query import Query
@@ -20,61 +22,55 @@ from logging import getLogger as _getLogger
 logger = _getLogger(__name__)
 
 
+class RetrieveItem(NamedTuple):
+    """A single retrieved object, independent of the iterator that produced it."""
+
+    key: Key
+    data: bytearray
+    timestamp: int
+    offset: int
+    length: int
+
+    def __str__(self) -> str:
+        return "{}, time: {}, offset: {}, length: {}".format(self.key, self.timestamp, self.offset, self.length)
+
+
 class Retrieve:
     def __init__(self, dasi: FFI.CData, query):
 
         logger.debug("Initialize Retrieve...")
 
-        self.__key = Key()
-        self.__data = bytearray()
-        self.__time = ffi.new("dasi_time_t *", 0)
-        self.__offset = ffi.new("long *", 0)
-        self.__length = ffi.new("long *", 0)
         self._cdata = new_retrieve(dasi, Query(query).cdata)
-
-    def __str__(self) -> str:
-        return "{}, time: {}, offset: {}, length: {}".format(self.key, self.timestamp, self.offset, self.length)
 
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> RetrieveItem:
         if lib.dasi_retrieve_next(self._cdata) == lib.DASI_ITERATION_COMPLETE:
             logger.debug("Iteration complete.")
             raise StopIteration
-        self.__read()
-        return self
+        return self.__read()
 
     def __len__(self) -> int:
         count = ffi.new("long *", 0)
         lib.dasi_retrieve_count(self._cdata, count)
         return count[0]
 
-    def __read(self):
+    def __read(self) -> RetrieveItem:
         ckey = ffi.new("dasi_key_t **", ffi.NULL)
-        lib.dasi_retrieve_attrs(self._cdata, ckey, self.__time, self.__offset, self.__length)
-        ckey: FFI.CData = ffi.gc(ckey[0], lib.dasi_free_key)
-        self.__key = Key(ckey)
+        time = ffi.new("dasi_time_t *", 0)
+        offset = ffi.new("long *", 0)
+        length = ffi.new("long *", 0)
 
-        self.__data = bytearray(self.length)
-        lib.dasi_retrieve_read(self._cdata, ffi.from_buffer(self.__data), self.__length)
+        lib.dasi_retrieve_attrs(self._cdata, ckey, time, offset, length)
 
-    @property
-    def key(self) -> Key:
-        return self.__key
+        data = bytearray(length[0])
+        lib.dasi_retrieve_read(self._cdata, ffi.from_buffer(data), length)
 
-    @property
-    def data(self) -> bytearray:
-        return self.__data
-
-    @property
-    def timestamp(self) -> int:
-        return self.__time[0]
-
-    @property
-    def offset(self) -> int:
-        return self.__offset[0]
-
-    @property
-    def length(self) -> int:
-        return self.__length[0]
+        return RetrieveItem(
+            key=Key(ffi.gc(ckey[0], lib.dasi_free_key)),
+            data=data,
+            timestamp=time[0],
+            offset=offset[0],
+            length=length[0],
+        )

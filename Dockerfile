@@ -7,6 +7,7 @@ FROM rockylinux/rockylinux:9.6 AS build-dependencies
 
 ARG BUILD_JOBS=2
 ENV CMAKE_BUILD_PARALLEL_LEVEL=${BUILD_JOBS}
+ENV FDB_INDEX_TYPE=BTreeIndex64
 LABEL org.opencontainers.image.title="DASI build dependencies" \
       org.opencontainers.image.description="Base image with compilers, build tools, and pre-built dependencies (ecbuild, libaec, AWS SDK for C++) used to build DASI." \
       org.opencontainers.image.source="https://github.com/ecmwf-projects/dasi" \
@@ -156,5 +157,7 @@ RUN pip install --no-cache-dir /tmp/wheels/pydasi-*.whl && \
     mkdir -p /workspace && chown 1000:1000 /workspace
 
 ENV PATH=/opt/dasi/bin:$PATH
+ENV FDB_INDEX_TYPE=BTreeIndex64
+
 WORKDIR /workspace
 USER 1000:1000
