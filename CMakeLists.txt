@@ -18,7 +18,7 @@
 
 cmake_minimum_required( VERSION 3.15 FATAL_ERROR )
 
-project( dasi VERSION 0.3.2
+project( dasi VERSION 0.3.3
               DESCRIPTION "Data Access and Storage Interface (DASI)"
               LANGUAGES C CXX )
 
