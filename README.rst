@@ -232,8 +232,8 @@ After successful tests, a host terminal can package and check the same artifacts
 
 .. code-block:: shell
 
-   docker build --target dasi-runtime --build-arg DASI_VERSION=0.3.2 -t dasi:local .
-   docker run --rm -e DASI_EXPECTED_VERSION=0.3.2 \
+   docker build --target dasi-runtime --build-arg DASI_VERSION=0.3.3 -t dasi:local .
+   docker run --rm -e DASI_EXPECTED_VERSION=0.3.3 \
      -v "$PWD/scripts/smoke-test.sh:/smoke.sh:ro" dasi:local bash /smoke.sh
 
 The runtime does not clone or compile DASI again. Its smoke check verifies both
