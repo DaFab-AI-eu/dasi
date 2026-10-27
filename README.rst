@@ -162,6 +162,10 @@ The Dockerfile has three stages: ``build-dependencies`` installs the toolchain,
 ``dev-env`` adds development tools, and ``dasi-runtime`` packages a tested installation.
 Neither the toolchain nor the dev image contains DASI source code.
 
+The ``FDB_INDEX_TYPE`` environment variable is set to ``BTreeIndex64`` in all
+Docker image stages (``build-dependencies``, ``dev-env``, and ``dasi-runtime``)
+to configure the Fields DataBase index type for optimal performance.
+
 Local Development
 ~~~~~~~~~~~~~~~~~
 
