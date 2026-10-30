@@ -15,3 +15,9 @@ services:
     profiles: !reset []
   rucio-setup:
     profiles: !reset []
+  dasi-dev:
+    volumes:
+      # Old DASI databases (read-only sources) and new destination for pydasi/tools/migrate_dasi.py; host must have the NFS share mounted
+      - /mnt/nfs/files/private/dafab/dafab/dasi/metadata/root:/mnt/nfs/files/private/dafab/dafab/dasi/metadata/root:ro
+      - /mnt/nfs/files/private/dafab/dafab/dasi/assets/root:/mnt/nfs/files/private/dafab/dafab/dasi/assets/root:ro
+      - /mnt/nfs/files/private/dafab/dasi:/mnt/nfs/files/private/dafab/dasi
